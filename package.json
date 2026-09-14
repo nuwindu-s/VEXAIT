@@ -2,11 +2,18 @@
   "name": "vexa-it-workspace",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
+    "build": "npm --prefix frontend run build",
     "dev": "npm --prefix frontend run dev",
     "server": "npm --prefix backend run start",
     "server:dev": "npm --prefix backend run dev",
-    "build:frontend": "npm --prefix frontend run build",
     "install:all": "npm --prefix frontend install && npm --prefix backend install"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.10.0"
   }
 }

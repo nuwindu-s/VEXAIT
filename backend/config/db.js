@@ -1,40 +1,49 @@
 import mongoose from 'mongoose';
 
 /**
- * Connect to MongoDB Atlas cluster
+ * Global cache for MongoDB connection across serverless invocations
+ */
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+/**
+ * Connect to MongoDB Atlas cluster with connection caching
  */
 export const connectDB = async () => {
   const uri = process.env.MONGO_URI;
 
   if (!uri) {
     console.error('❌ Error: MONGO_URI is not defined in environment variables.');
-    process.exit(1);
+    return null;
+  }
+
+  if (cached.conn && mongoose.connection.readyState === 1) {
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false,
+    };
+
+    cached.promise = mongoose.connect(uri, opts).then((mongooseInstance) => {
+      console.log(`✅ MongoDB Connected: ${mongooseInstance.connection.host} / Database: ${mongooseInstance.connection.name}`);
+      return mongooseInstance;
+    });
   }
 
   try {
-    const conn = await mongoose.connect(uri);
-
-    console.log(`✅ MongoDB Connected: ${conn.connection.host} / Database: ${conn.connection.name}`);
-
-    // Connection event listeners
-    mongoose.connection.on('error', (err) => {
-      console.error('❌ MongoDB Connection Error:', err);
-    });
-
-    mongoose.connection.on('disconnected', () => {
-      console.warn('⚠️ MongoDB Disconnected. Attempting to reconnect...');
-    });
-
-    mongoose.connection.on('reconnected', () => {
-      console.log('🔄 MongoDB Reconnected successfully.');
-    });
-
-    return conn;
+    cached.conn = await cached.promise;
   } catch (error) {
-    console.error(`❌ MongoDB Initial Connection Failed: ${error.message}`);
-    // Optional retry logic if server should keep running
+    cached.promise = null;
+    console.error(`❌ MongoDB Connection Failed: ${error.message}`);
     return null;
   }
+
+  return cached.conn;
 };
 
 export default connectDB;
