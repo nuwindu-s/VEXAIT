@@ -11,7 +11,8 @@
   "dependencies": {
     "lucide-react": "^1.39.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "vexa-it-workspace": "file:.."
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
