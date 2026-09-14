@@ -43,9 +43,9 @@ app.use(
   })
 );
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Body parsing middleware (supports batch multi-photo project submissions)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Ensure Database is connected for serverless invocations
 app.use(async (req, res, next) => {

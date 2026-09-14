@@ -329,29 +329,34 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
     });
   };
 
-  // Add Photo via Local File Upload with Auto Compression
+  // Add Photos via Local File Upload (Multiple Files Support without Limit)
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     try {
-      showToast('Optimizing image...');
-      const base64Url = await compressImage(file);
-      setProjectForm((prev) => ({
-        ...prev,
-        galleryImages: [
-          ...prev.galleryImages,
-          {
+      showToast(`Processing ${files.length} photo${files.length > 1 ? 's' : ''}...`);
+      
+      const processedImages = await Promise.all(
+        files.map(async (file, index) => {
+          const base64Url = await compressImage(file);
+          return {
             url: base64Url,
             title: file.name.replace(/\.[^/.]+$/, ''),
-            caption: `Optimized image (${(file.size / 1024).toFixed(0)} KB)`,
-          },
-        ],
+            caption: `Photo ${projectForm.galleryImages.length + index + 1}`,
+          };
+        })
+      );
+
+      setProjectForm((prev) => ({
+        ...prev,
+        galleryImages: [...prev.galleryImages, ...processedImages],
       }));
-      showToast(`Added photo: ${file.name}`);
+
+      showToast(`Successfully added ${files.length} photo${files.length > 1 ? 's' : ''}`);
     } catch (err) {
-      console.error('Image compression error:', err);
-      showToast('Error processing image file', 'error');
+      console.error('Batch image upload error:', err);
+      showToast('Error processing some image files', 'error');
     }
     e.target.value = '';
   };
@@ -1430,13 +1435,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                   </div>
                 </div>
 
-                {/* Option 2: Upload File */}
+                {/* Option 2: Upload Files (Multiple Supported) */}
                 <div className="pt-2 border-t border-slate-800 space-y-2">
-                  <span className="text-[11px] font-semibold text-slate-400">Option B: Upload Local Photo File</span>
+                  <span className="text-[11px] font-semibold text-slate-400">Option B: Upload Local Photo Files</span>
                   <label className="flex items-center justify-center gap-2 p-3 bg-slate-950/60 border border-dashed border-slate-700 rounded-xl hover:border-blue-500 text-xs text-slate-400 hover:text-white cursor-pointer transition-colors">
                     <Upload className="w-4 h-4 text-blue-400" />
-                    <span>Click to choose image file from your computer</span>
-                    <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+                    <span>Click to choose one or multiple image files from your computer</span>
+                    <input type="file" accept="image/*" multiple onChange={handleFileUpload} className="hidden" />
                   </label>
                 </div>
 
