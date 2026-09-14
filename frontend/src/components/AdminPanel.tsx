@@ -32,7 +32,7 @@ import {
   Copy,
   MessageSquare,
 } from 'lucide-react';
-import { ProjectItem } from '../data/portfolio';
+import { ProjectItem, portfolioData } from '../data/portfolio';
 
 interface AdminPanelProps {
   onExit: () => void;
@@ -104,7 +104,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
     try {
       const res = await fetch('/api/portfolio');
       const data = await res.json();
-      if (data.success && Array.isArray(data.data)) {
+      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
         // Map backend schema to ProjectItem
         const formatted: ProjectItem[] = data.data.map((p: any) => ({
           id: p.slug || p._id,
@@ -128,10 +128,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
           url: p.url || '',
         }));
         setProjects(formatted);
+      } else {
+        // Use default portfolio data if backend returned empty list
+        setProjects(portfolioData);
       }
     } catch (err) {
-      console.error('Failed to load projects:', err);
-      showToast('Could not fetch projects from server', 'error');
+      console.error('Failed to load projects from server, using local portfolio sync:', err);
+      setProjects(portfolioData);
     } finally {
       setLoadingProjects(false);
     }

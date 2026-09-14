@@ -13,7 +13,9 @@ if (!cached) {
  * Connect to MongoDB Atlas cluster with connection caching
  */
 export const connectDB = async () => {
-  const uri = process.env.MONGO_URI;
+  const uri =
+    process.env.MONGO_URI ||
+    'mongodb+srv://vexait2026_db_user:EPRLus5Kl7Q4jnjo@cluster0.cbj5yta.mongodb.net/vexa_it?retryWrites=true&w=majority';
 
   if (!uri) {
     console.error('❌ Error: MONGO_URI is not defined in environment variables.');
