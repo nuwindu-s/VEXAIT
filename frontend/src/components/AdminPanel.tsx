@@ -56,6 +56,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
   const [projectCategoryFilter, setProjectCategoryFilter] = useState('all');
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
+  const [isSavingProject, setIsSavingProject] = useState(false);
 
   // Inquiries State
   const [inquiries, setInquiries] = useState<any[]>([]);
@@ -284,14 +285,58 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
     setPhotoCaptionInput('');
   };
 
-  // Add Photo via Local File Upload (FileReader Base64)
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Helper: Client-side Image Compression (Reduces large 5-10MB camera/screenshots to ~100KB WebP/JPEG)
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxWidth = 1280;
+          const maxHeight = 720;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            resolve(dataUrl);
+          } else {
+            resolve(e.target?.result as string);
+          }
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Add Photo via Local File Upload with Auto Compression
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64Url = reader.result as string;
+    try {
+      showToast('Optimizing image...');
+      const base64Url = await compressImage(file);
       setProjectForm((prev) => ({
         ...prev,
         galleryImages: [
@@ -299,13 +344,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
           {
             url: base64Url,
             title: file.name.replace(/\.[^/.]+$/, ''),
-            caption: `Uploaded image (${(file.size / 1024).toFixed(0)} KB)`,
+            caption: `Optimized image (${(file.size / 1024).toFixed(0)} KB)`,
           },
         ],
       }));
-      showToast(`Uploaded ${file.name}`);
-    };
-    reader.readAsDataURL(file);
+      showToast(`Added photo: ${file.name}`);
+    } catch (err) {
+      console.error('Image compression error:', err);
+      showToast('Error processing image file', 'error');
+    }
     e.target.value = '';
   };
 
@@ -325,9 +372,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
       return;
     }
 
+    setIsSavingProject(true);
+
     const payload = {
       name: projectForm.name.trim(),
-      slug: projectForm.slug.trim() || undefined,
+      slug: projectForm.slug?.trim() || undefined,
       category: projectForm.category,
       tag: projectForm.tag.trim() || projectForm.category,
       badge: projectForm.badge.trim(),
@@ -372,11 +421,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
         setIsProjectModalOpen(false);
         fetchProjects();
       } else {
-        showToast(data.error || 'Failed to save project', 'error');
+        showToast(data.error || data.message || 'Failed to save project', 'error');
       }
     } catch (err) {
       console.error('Error saving project:', err);
       showToast('Server error saving project', 'error');
+    } finally {
+      setIsSavingProject(false);
     }
   };
 
@@ -1429,10 +1480,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/20 cursor-pointer flex items-center gap-2"
+                  disabled={isSavingProject}
+                  className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/20 cursor-pointer flex items-center gap-2"
                 >
-                  <Check className="w-4 h-4" />
-                  <span>{editingProject ? 'Save Changes' : 'Create Project'}</span>
+                  {isSavingProject ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>{editingProject ? 'Save Changes' : 'Create Project'}</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

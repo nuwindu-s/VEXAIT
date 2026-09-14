@@ -118,6 +118,9 @@ router.post('/', async (req, res) => {
 
     // Generate unique slug
     let finalSlug = slug ? slugify(slug) : slugify(name);
+    if (!finalSlug || finalSlug.trim() === '') {
+      finalSlug = `project-${Date.now()}`;
+    }
     let existing = await Project.findOne({ slug: finalSlug });
     if (existing) {
       finalSlug = `${finalSlug}-${Date.now().toString().slice(-4)}`;
