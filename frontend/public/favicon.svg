@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect width="128" height="128" rx="28" fill="#0A192F"/>
+  <!-- Stylized Geometric V Mark of VEXA IT -->
+  <path d="M36 38L64 96L92 38" stroke="#00D2FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/>
+  <path d="M40 38H56L64 88L72 38H88L64 96L40 38Z" fill="url(#brandGrad)" />
+  <path d="M48 42L64 82L80 42" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M52 54L76 54" stroke="#00D2FF" stroke-width="3" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="brandGrad" x1="40" y1="38" x2="88" y2="96" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00D2FF"/>
+      <stop offset="0.5" stop-color="#0066FF"/>
+      <stop offset="1" stop-color="#0A192F"/>
+    </linearGradient>
+  </defs>
+</svg>
