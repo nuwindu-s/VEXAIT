@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import { connectDB } from './config/db.js';
+import { connectDB, getLastDbError } from './config/db.js';
 
 // Route imports
 import inquiryRoutes from './routes/inquiryRoutes.js';
@@ -86,6 +86,7 @@ app.get('/api/health', (req, res) => {
       status: dbStatusMap[dbState] || 'unknown',
       host: mongoose.connection.host || 'unknown',
       name: mongoose.connection.name || 'unknown',
+      error: getLastDbError() || undefined,
     },
     environment: process.env.NODE_ENV || 'development',
     serverless: Boolean(process.env.VERCEL),

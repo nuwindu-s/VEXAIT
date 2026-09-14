@@ -9,6 +9,10 @@ if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
 
+let lastDbError = null;
+
+export const getLastDbError = () => lastDbError;
+
 /**
  * Connect to MongoDB Atlas cluster with connection caching
  */
@@ -18,7 +22,8 @@ export const connectDB = async () => {
     'mongodb+srv://vexait2026_db_user:EPRLus5Kl7Q4jnjo@cluster0.cbj5yta.mongodb.net/vexa_it?retryWrites=true&w=majority';
 
   if (!uri) {
-    console.error('❌ Error: MONGO_URI is not defined in environment variables.');
+    lastDbError = 'MONGO_URI is not defined in environment variables.';
+    console.error('❌ Error: ' + lastDbError);
     return null;
   }
 
@@ -28,10 +33,12 @@ export const connectDB = async () => {
 
   if (!cached.promise) {
     const opts = {
-      bufferCommands: false,
+      serverSelectionTimeoutMS: 6000,
+      connectTimeoutMS: 6000,
     };
 
     cached.promise = mongoose.connect(uri, opts).then((mongooseInstance) => {
+      lastDbError = null;
       console.log(`✅ MongoDB Connected: ${mongooseInstance.connection.host} / Database: ${mongooseInstance.connection.name}`);
       return mongooseInstance;
     });
@@ -41,6 +48,8 @@ export const connectDB = async () => {
     cached.conn = await cached.promise;
   } catch (error) {
     cached.promise = null;
+    cached.conn = null;
+    lastDbError = error.message;
     console.error(`❌ MongoDB Connection Failed: ${error.message}`);
     return null;
   }
