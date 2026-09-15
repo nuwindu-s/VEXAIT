@@ -11,6 +11,7 @@ import { WhyChooseUs } from './components/WhyChooseUs';
 import { CTA } from './components/CTA';
 import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
+import { WhatsAppWidget } from './components/WhatsAppWidget';
 import { NotFound } from './components/NotFound';
 import { AdminPanel } from './components/AdminPanel';
 
@@ -276,6 +277,9 @@ export const App: React.FC = () => {
         onTabChange={(tab) => switchTab(tab)}
         onSelectService={(service) => switchTab('contact', service)}
       />
+
+      {/* 12. FLOATING WHATSAPP CHAT WIDGET */}
+      <WhatsAppWidget />
     </div>
   );
 };

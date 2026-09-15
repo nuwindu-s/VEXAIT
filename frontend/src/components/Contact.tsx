@@ -279,6 +279,22 @@ export const Contact: React.FC<ContactProps> = ({
                   </div>
                 </div>
 
+                {/* Phone / WhatsApp */}
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-blue-600/20 text-[#00D2FF] shrink-0 border border-blue-500/30">
+                    <Phone className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-slate-400 font-semibold uppercase">Call / WhatsApp</p>
+                    <a
+                      href="tel:+94712696668"
+                      className="text-white font-medium hover:text-[#00D2FF] transition-colors"
+                    >
+                      {companyData.phone}
+                    </a>
+                  </div>
+                </div>
+
                 {/* Location */}
                 <div className="flex items-start gap-4">
                   <div className="p-3 rounded-xl bg-blue-600/20 text-[#00D2FF] shrink-0 border border-blue-500/30">
