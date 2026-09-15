@@ -111,3 +111,65 @@
 .animate-float-slow {
   animation: floatSlow 5s infinite ease-in-out;
 }
+
+/* WhatsApp Widget Animations */
+@keyframes whatsappFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes whatsappWiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  5%, 15% {
+    transform: rotate(-14deg) scale(1.1);
+  }
+  10%, 20% {
+    transform: rotate(14deg) scale(1.1);
+  }
+  25% {
+    transform: rotate(0deg) scale(1);
+  }
+  80% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes whatsappRipple {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.65);
+    opacity: 0;
+  }
+}
+
+.animate-whatsapp-float {
+  animation: whatsappFloat 3.5s ease-in-out infinite;
+}
+
+.animate-whatsapp-wiggle {
+  animation: whatsappWiggle 4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.animate-whatsapp-ripple {
+  animation: whatsappRipple 2.4s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+.animate-whatsapp-ripple-delayed {
+  animation: whatsappRipple 2.4s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+  animation-delay: 1.2s;
+}
+
