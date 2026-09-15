@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { servicesData } from '../data/services';
+import { pricingData } from '../data/pricingData';
 import {
   Globe,
   Code,
@@ -10,14 +11,21 @@ import {
   ArrowRight,
   Check,
   ChevronDown,
+  Sparkles,
+  Tag,
 } from 'lucide-react';
 
 interface ServicesProps {
   onSelectService: (serviceName: string) => void;
+  onViewPackages?: (serviceId: string) => void;
   isStandalone?: boolean;
 }
 
-export const Services: React.FC<ServicesProps> = ({ onSelectService, isStandalone = false }) => {
+export const Services: React.FC<ServicesProps> = ({
+  onSelectService,
+  onViewPackages,
+  isStandalone = false,
+}) => {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   const getServiceIcon = (name: string) => {
@@ -39,8 +47,21 @@ export const Services: React.FC<ServicesProps> = ({ onSelectService, isStandalon
     }
   };
 
+  const getStartingPrice = (serviceId: string) => {
+    const found = pricingData.find((p) => p.id === serviceId);
+    return found ? found.startingPrice : 'Rs. 35,000';
+  };
+
   const handleInquire = (serviceTitle: string) => {
     onSelectService(serviceTitle);
+  };
+
+  const handleViewPackages = (serviceId: string) => {
+    if (onViewPackages) {
+      onViewPackages(serviceId);
+    } else {
+      window.location.hash = 'pricing';
+    }
   };
 
   const toggleExpand = (id: string) => {
@@ -58,7 +79,7 @@ export const Services: React.FC<ServicesProps> = ({ onSelectService, isStandalon
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">
-            Our Services
+            Our Services & Capabilities
           </h1>
 
           <p className="text-lg text-slate-600 leading-relaxed">
@@ -70,6 +91,7 @@ export const Services: React.FC<ServicesProps> = ({ onSelectService, isStandalon
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {servicesData.map((service) => {
             const isExpanded = expandedCard === service.id;
+            const startingPrice = getStartingPrice(service.id);
 
             return (
               <div
@@ -92,9 +114,17 @@ export const Services: React.FC<ServicesProps> = ({ onSelectService, isStandalon
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-2.5">
+                  <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-2">
                     {service.title}
                   </h3>
+
+                  {/* Starting From Price Indicator */}
+                  <div className="mb-3.5 flex items-center gap-2">
+                    <span className="text-xs font-medium text-slate-500">Starting from</span>
+                    <span className="text-sm font-extrabold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                      {startingPrice}
+                    </span>
+                  </div>
 
                   {/* Short Description */}
                   <p className="text-sm text-slate-600 leading-relaxed mb-4">
@@ -138,12 +168,21 @@ export const Services: React.FC<ServicesProps> = ({ onSelectService, isStandalon
                   </div>
                 </div>
 
-                {/* Bottom Card Action */}
-                <div className="pt-5 mt-4 border-t border-slate-100">
+                {/* Bottom Card Actions */}
+                <div className="pt-5 mt-4 border-t border-slate-100 space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => handleViewPackages(service.id)}
+                    className="w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Tag className="w-3.5 h-3.5 text-blue-600" />
+                    <span>View Packages</span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => handleInquire(service.title)}
-                    className="w-full inline-flex items-center justify-between text-xs font-bold text-slate-700 group-hover:text-blue-600 py-2 transition-colors group/btn cursor-pointer"
+                    className="w-full inline-flex items-center justify-between text-xs font-bold text-slate-700 group-hover:text-blue-600 py-1.5 transition-colors group/btn cursor-pointer px-1"
                   >
                     <span>Request Proposal</span>
                     <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />

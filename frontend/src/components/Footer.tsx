@@ -106,6 +106,15 @@ export const Footer: React.FC<FooterProps> = ({ onTabChange, onSelectService }) 
               <li>
                 <button
                   type="button"
+                  onClick={() => handleNavTab('pricing')}
+                  className="hover:text-white transition-colors cursor-pointer"
+                >
+                  Pricing
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
                   onClick={() => handleNavTab('projects')}
                   className="hover:text-white transition-colors cursor-pointer"
                 >

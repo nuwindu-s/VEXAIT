@@ -18,17 +18,26 @@ import {
 
 interface ContactProps {
   initialService?: string;
+  initialPackage?: string;
+  initialPrice?: string;
   isStandalone?: boolean;
 }
 
-export const Contact: React.FC<ContactProps> = ({ initialService, isStandalone = false }) => {
+export const Contact: React.FC<ContactProps> = ({
+  initialService,
+  initialPackage,
+  initialPrice,
+  isStandalone = false,
+}) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     company: '',
     service: initialService || 'Web Development',
-    details: '',
+    details: initialPackage
+      ? `I would like to request a proposal for the ${initialService} — ${initialPackage} package (${initialPrice || ''}).`
+      : '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -40,9 +49,15 @@ export const Contact: React.FC<ContactProps> = ({ initialService, isStandalone =
 
   useEffect(() => {
     if (initialService) {
-      setFormData((prev) => ({ ...prev, service: initialService }));
+      setFormData((prev) => ({
+        ...prev,
+        service: initialService,
+        details: initialPackage
+          ? `I would like to request a proposal for the ${initialService} — ${initialPackage} package (${initialPrice || ''}).`
+          : prev.details,
+      }));
     }
-  }, [initialService]);
+  }, [initialService, initialPackage, initialPrice]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};

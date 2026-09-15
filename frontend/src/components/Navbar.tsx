@@ -3,7 +3,7 @@ import { Logo } from './Logo';
 import { Menu, X, ArrowRight, Phone, Mail } from 'lucide-react';
 import { companyData } from '../data/company';
 
-export type TabType = 'home' | 'about' | 'services' | 'projects' | 'process' | 'contact';
+export type TabType = 'home' | 'about' | 'services' | 'pricing' | 'projects' | 'process' | 'contact';
 
 interface NavbarProps {
   activeTab: TabType;
@@ -27,6 +27,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
     { id: 'home', name: 'Home' },
     { id: 'about', name: 'About' },
     { id: 'services', name: 'Services' },
+    { id: 'pricing', name: 'Pricing' },
     { id: 'projects', name: 'Projects' },
     { id: 'process', name: 'Process' },
     { id: 'contact', name: 'Contact' },
