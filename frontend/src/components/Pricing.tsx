@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { pricingData, ServicePricing, PricingPackage } from '../data/pricingData';
+import { ServicePricing, PricingPackage } from '../data/pricingData';
+import { useSite } from '../context/SiteContext';
 import { PricingModal } from './PricingModal';
 import {
   Globe,
@@ -28,6 +29,7 @@ export const Pricing: React.FC<PricingProps> = ({
   isStandalone = false,
   selectedServiceId,
 }) => {
+  const { pricingList } = useSite();
   const [activeServiceId, setActiveServiceId] = useState<string>(
     selectedServiceId || 'web-development'
   );
@@ -59,7 +61,7 @@ export const Pricing: React.FC<PricingProps> = ({
   };
 
   const currentService =
-    pricingData.find((s) => s.id === activeServiceId) || pricingData[0];
+    pricingList.find((s) => s.id === activeServiceId) || pricingList[0];
 
   const handleOpenModal = (service: ServicePricing, pkg: PricingPackage) => {
     setModalState({ service, packageItem: pkg });
@@ -98,7 +100,7 @@ export const Pricing: React.FC<PricingProps> = ({
         {/* Service Selector Tabs */}
         <div className="flex items-center justify-center mb-12">
           <div className="inline-flex flex-wrap items-center justify-center gap-2 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-sm max-w-full overflow-x-auto">
-            {pricingData.map((service) => {
+            {pricingList.map((service) => {
               const isActive = activeServiceId === service.id;
               return (
                 <button

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { companyData } from '../data/company';
+import { useSite } from '../context/SiteContext';
 import { X } from 'lucide-react';
 
 export const WhatsAppWidget: React.FC = () => {
+  const { settings } = useSite();
   const [showTooltip, setShowTooltip] = useState(true);
 
   return (
@@ -26,7 +27,7 @@ export const WhatsAppWidget: React.FC = () => {
             <div>
               <p className="font-bold text-slate-900">Need a quick quote?</p>
               <p className="text-slate-600 mt-0.5 leading-relaxed">
-                Chat directly with our engineers on WhatsApp: <strong>071 269 6668</strong>
+                Chat directly with our engineers on WhatsApp: <strong>{settings.phone || '071 269 6668'}</strong>
               </p>
             </div>
           </div>
@@ -41,11 +42,11 @@ export const WhatsAppWidget: React.FC = () => {
 
         {/* The Button */}
         <a
-          href={companyData.whatsappUrl}
+          href={settings.whatsappUrl || "https://wa.me/94712696668"}
           target="_blank"
           rel="noopener noreferrer"
           className="group relative flex items-center gap-2.5 px-4.5 py-3 rounded-full bg-gradient-to-r from-[#25D366] to-[#20ba59] hover:from-[#22c55e] hover:to-[#16a34a] text-white shadow-xl shadow-emerald-600/40 hover:shadow-2xl hover:shadow-emerald-500/50 transition-all duration-300 transform hover:scale-105 active:scale-95 border border-white/20"
-          aria-label="Chat with Vexa IT on WhatsApp: 0712696668"
+          aria-label={`Chat with Vexa IT on WhatsApp: ${settings.phone}`}
         >
           {/* Subtle Shimmer Overlay */}
           <span className="absolute inset-0 rounded-full bg-white/15 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />

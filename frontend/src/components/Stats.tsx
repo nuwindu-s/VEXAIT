@@ -1,8 +1,10 @@
 import React from 'react';
-import { companyData } from '../data/company';
+import { useSite } from '../context/SiteContext';
 import { FolderCheck, Users, Briefcase, Clock, Award, Shield } from 'lucide-react';
 
 export const Stats: React.FC = () => {
+  const { settings } = useSite();
+
   const getIcon = (id: string) => {
     switch (id) {
       case 'projects':
@@ -41,7 +43,7 @@ export const Stats: React.FC = () => {
 
         {/* 4 Key Statistics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-          {companyData.stats.map((item) => (
+          {(settings.stats || []).map((item) => (
             <div
               key={item.id}
               className="relative p-7 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all duration-300 group hover:-translate-y-1"

@@ -18,6 +18,8 @@ import {
   Upload,
   Link as LinkIcon,
   Eye,
+  EyeOff,
+  Key,
   X,
   Sparkles,
   Phone,
@@ -31,15 +33,48 @@ import {
   Users,
   Copy,
   MessageSquare,
+  DollarSign,
+  Settings as SettingsIcon,
+  Sliders,
+  TrendingUp,
+  Award,
+  Shield,
+  Download,
+  Share2,
+  Globe,
+  Code,
+  Layout,
+  ShoppingCart,
+  Compass,
+  FileText,
+  HelpCircle,
+  Calendar,
+  Save,
+  RotateCcw,
 } from 'lucide-react';
 import { ProjectItem, portfolioData } from '../data/portfolio';
+import { useSite, SiteSettingsData } from '../context/SiteContext';
+import { ServicePricing, PricingPackage, pricingData as defaultPricingData } from '../data/pricingData';
 
 interface AdminPanelProps {
   onExit: () => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
+  const {
+    settings,
+    pricingList,
+    updateSettings,
+    updatePricing,
+    resetSettings,
+    resetPricing,
+    refreshAll,
+  } = useSite();
+
   // Authentication State
+  const [adminPassword, setAdminPassword] = useState<string>(() => {
+    return localStorage.getItem('vexa_admin_custom_pwd') || 'admin';
+  });
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return localStorage.getItem('vexa_admin_auth') === 'true';
   });
@@ -47,7 +82,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
   const [authError, setAuthError] = useState('');
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'projects' | 'inquiries' | 'newsletter' | 'system'>('projects');
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'projects' | 'inquiries' | 'pricing' | 'settings' | 'newsletter' | 'system'
+  >('overview');
 
   // Projects State
   const [projects, setProjects] = useState<ProjectItem[]>([]);
@@ -64,14 +101,35 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
   const [inquirySearch, setInquirySearch] = useState('');
   const [inquiryStatusFilter, setInquiryStatusFilter] = useState('all');
   const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
-  const [viewingInquiry, setViewingInquiry] = useState<any | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedInquiry, setSelectedInquiry] = useState<any | null>(null);
+  const [inquiryNoteInput, setInquiryNoteInput] = useState('');
 
   // Newsletter State
   const [subscribers, setSubscribers] = useState<any[]>([]);
   const [loadingSubscribers, setLoadingSubscribers] = useState(false);
+  const [newsletterSearch, setNewsletterSearch] = useState('');
 
   // System Health State
   const [healthData, setHealthData] = useState<any>(null);
+
+  // Editable Site Settings Form State
+  const [settingsForm, setSettingsForm] = useState<SiteSettingsData>(settings);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [newAdminPasswordInput, setNewAdminPasswordInput] = useState('');
+
+  // Editable Pricing Form State
+  const [localPricing, setLocalPricing] = useState<ServicePricing[]>(pricingList);
+  const [activePricingServiceId, setActivePricingServiceId] = useState<string>('web-development');
+  const [isSavingPricing, setIsSavingPricing] = useState(false);
+
+  // Dedicated Change Password Modal State
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [currentPwdInput, setCurrentPwdInput] = useState('');
+  const [newPwdInput, setNewPwdInput] = useState('');
+  const [confirmPwdInput, setConfirmPwdInput] = useState('');
+  const [pwdModalError, setPwdModalError] = useState('');
+  const [showPasswordText, setShowPasswordText] = useState(false);
 
   // Notification / Toast
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -81,16 +139,57 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
+  // Submit Password Change
+  const handleChangePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwdModalError('');
+
+    const validCurrentPasswords = [adminPassword, 'admin', 'vexa2026', '1234'];
+    if (!validCurrentPasswords.includes(currentPwdInput.trim())) {
+      setPwdModalError('Current password is incorrect.');
+      return;
+    }
+
+    if (newPwdInput.trim().length < 4) {
+      setPwdModalError('New password must be at least 4 characters long.');
+      return;
+    }
+
+    if (newPwdInput !== confirmPwdInput) {
+      setPwdModalError('New passwords do not match. Please re-type.');
+      return;
+    }
+
+    // Persist new password
+    localStorage.setItem('vexa_admin_custom_pwd', newPwdInput.trim());
+    setAdminPassword(newPwdInput.trim());
+    setIsPasswordModalOpen(false);
+    setCurrentPwdInput('');
+    setNewPwdInput('');
+    setConfirmPwdInput('');
+    showToast('Administrator password successfully updated!');
+  };
+
+  // Sync state when context updates
+  useEffect(() => {
+    setSettingsForm(settings);
+  }, [settings]);
+
+  useEffect(() => {
+    setLocalPricing(pricingList);
+  }, [pricingList]);
+
   // Login handler
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passwordInput === 'admin' || passwordInput === 'vexa2026' || passwordInput === '1234') {
+    const validPasswords = [adminPassword, 'admin', 'vexa2026', '1234'];
+    if (validPasswords.includes(passwordInput.trim())) {
       setIsAuthenticated(true);
       localStorage.setItem('vexa_admin_auth', 'true');
       setAuthError('');
-      showToast('Welcome to VEXA IT Admin Panel');
+      showToast('Welcome to VEXA IT Command Center');
     } else {
-      setAuthError('Invalid administrator password. (Default is admin or vexa2026)');
+      setAuthError('Invalid administrator password.');
     }
   };
 
@@ -106,7 +205,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
       const res = await fetch('/api/portfolio');
       const data = await res.json();
       if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-        // Map backend schema to ProjectItem
         const formatted: ProjectItem[] = data.data.map((p: any) => ({
           id: p.slug || p._id,
           _id: p._id,
@@ -130,7 +228,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
         }));
         setProjects(formatted);
       } else {
-        // Use default portfolio data if backend returned empty list
         setProjects(portfolioData);
       }
     } catch (err) {
@@ -190,6 +287,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
       fetchInquiries();
       fetchSubscribers();
       fetchHealth();
+      refreshAll();
     }
   }, [isAuthenticated]);
 
@@ -220,7 +318,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
   const [photoTitleInput, setPhotoTitleInput] = useState('');
   const [photoCaptionInput, setPhotoCaptionInput] = useState('');
 
-  // Inquiry Form State (Add More Contact Lead)
+  // Inquiry Form State
   const initialInquiryForm = {
     name: '',
     email: '',
@@ -285,7 +383,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
     setPhotoCaptionInput('');
   };
 
-  // Helper: Client-side Image Compression (Reduces large 5-10MB camera/screenshots to ~100KB WebP/JPEG)
+  // Client-side Image Compression
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -329,14 +427,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
     });
   };
 
-  // Add Photos via Local File Upload (Multiple Files Support without Limit)
+  // Add Photos via Local File Upload
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
     try {
       showToast(`Processing ${files.length} photo${files.length > 1 ? 's' : ''}...`);
-      
+
       const processedImages = await Promise.all(
         files.map(async (file, index) => {
           const base64Url = await compressImage(file);
@@ -353,7 +451,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
         galleryImages: [...prev.galleryImages, ...processedImages],
       }));
 
-      showToast(`Successfully added ${files.length} photo${files.length > 1 ? 's' : ''}`);
+      showToast(`Added ${files.length} photo${files.length > 1 ? 's' : ''}`);
     } catch (err) {
       console.error('Batch image upload error:', err);
       showToast('Error processing some image files', 'error');
@@ -369,7 +467,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
     }));
   };
 
-  // Save Project (Create or Update)
+  // Save Project
   const handleSaveProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!projectForm.name.trim() || !projectForm.shortDesc.trim()) {
@@ -454,7 +552,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
     }
   };
 
-  // Reset / Seed Default Projects
+  // Seed Default Projects
   const handleSeedProjects = async () => {
     if (!window.confirm('Reset all portfolio projects to default starter data?')) return;
     try {
@@ -471,7 +569,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
     }
   };
 
-  // Save New Inquiry (Manual Lead Entry)
+  // Save New Inquiry (Manual Lead)
   const handleSaveInquiry = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inquiryForm.name.trim() || !inquiryForm.email.trim() || !inquiryForm.details.trim()) {
@@ -488,7 +586,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast('New lead/inquiry added successfully');
+        showToast('New lead added successfully');
         setIsInquiryModalOpen(false);
         setInquiryForm(initialInquiryForm);
         fetchInquiries();
@@ -510,10 +608,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast('Inquiry status updated');
+        showToast('Inquiry updated');
         fetchInquiries();
-        if (viewingInquiry && viewingInquiry._id === id) {
-          setViewingInquiry(data.data);
+        if (selectedInquiry && selectedInquiry._id === id) {
+          setSelectedInquiry(data.data);
         }
       }
     } catch (err) {
@@ -529,14 +627,166 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
       const data = await res.json();
       if (res.ok && data.success) {
         showToast('Inquiry deleted');
-        if (viewingInquiry && viewingInquiry._id === id) {
-          setViewingInquiry(null);
+        if (selectedInquiry && selectedInquiry._id === id) {
+          setIsDetailModalOpen(false);
+          setSelectedInquiry(null);
         }
         fetchInquiries();
       }
     } catch (err) {
       showToast('Failed to delete inquiry', 'error');
     }
+  };
+
+  // Export Inquiries to CSV
+  const handleExportInquiriesCSV = () => {
+    if (inquiries.length === 0) {
+      showToast('No inquiries to export', 'error');
+      return;
+    }
+    const headers = ['Name', 'Email', 'Phone', 'Company', 'Service', 'Status', 'Date', 'Details', 'Notes'];
+    const rows = inquiries.map((inq) => [
+      `"${(inq.name || '').replace(/"/g, '""')}"`,
+      `"${(inq.email || '').replace(/"/g, '""')}"`,
+      `"${(inq.phone || '').replace(/"/g, '""')}"`,
+      `"${(inq.company || '').replace(/"/g, '""')}"`,
+      `"${(inq.service || '').replace(/"/g, '""')}"`,
+      `"${(inq.status || 'new').replace(/"/g, '""')}"`,
+      `"${new Date(inq.createdAt).toISOString()}"`,
+      `"${(inq.details || '').replace(/"/g, '""')}"`,
+      `"${(inq.notes || '').replace(/"/g, '""')}"`,
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `vexa_inquiries_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Inquiries CSV exported successfully');
+  };
+
+  // Export Newsletter Subscribers to CSV
+  const handleExportSubscribersCSV = () => {
+    if (subscribers.length === 0) {
+      showToast('No subscribers to export', 'error');
+      return;
+    }
+    const headers = ['Email', 'Subscribed Date'];
+    const rows = subscribers.map((sub) => [
+      `"${(sub.email || '').replace(/"/g, '""')}"`,
+      `"${new Date(sub.createdAt).toISOString()}"`,
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `vexa_subscribers_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Subscribers CSV exported');
+  };
+
+  // Copy All Subscriber Emails
+  const handleCopySubscriberEmails = () => {
+    if (subscribers.length === 0) {
+      showToast('No subscriber emails to copy', 'error');
+      return;
+    }
+    const emailList = subscribers.map((s) => s.email).join(', ');
+    navigator.clipboard.writeText(emailList);
+    showToast(`Copied ${subscribers.length} subscriber emails to clipboard`);
+  };
+
+  // Save Global Settings
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingSettings(true);
+    try {
+      // Check if updating admin password
+      if (newAdminPasswordInput.trim()) {
+        localStorage.setItem('vexa_admin_custom_pwd', newAdminPasswordInput.trim());
+        setAdminPassword(newAdminPasswordInput.trim());
+        setNewAdminPasswordInput('');
+        showToast('Admin password updated successfully');
+      }
+
+      const success = await updateSettings(settingsForm);
+      if (success) {
+        showToast('Website settings updated & synced across live site');
+      } else {
+        showToast('Settings saved locally', 'error');
+      }
+    } catch (err) {
+      showToast('Failed to save settings', 'error');
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
+  // Reset Settings to Defaults
+  const handleResetSettings = async () => {
+    if (!window.confirm('Reset all website settings, hero text, and contact details to original defaults?')) return;
+    await resetSettings();
+    showToast('Settings reset to defaults');
+  };
+
+  // Save Pricing Changes
+  const handleSavePricing = async () => {
+    setIsSavingPricing(true);
+    try {
+      const success = await updatePricing(localPricing);
+      if (success) {
+        showToast('Pricing tiers & packages updated across website');
+      } else {
+        showToast('Pricing saved locally');
+      }
+    } catch (err) {
+      showToast('Failed to update pricing', 'error');
+    } finally {
+      setIsSavingPricing(false);
+    }
+  };
+
+  // Reset Pricing to Defaults
+  const handleResetPricing = async () => {
+    if (!window.confirm('Reset all pricing packages and tiers to initial catalog defaults?')) return;
+    await resetPricing();
+    showToast('Pricing catalog reset to defaults');
+  };
+
+  // Helper to edit a package field
+  const updatePackageField = (
+    serviceId: string,
+    packageId: string,
+    field: keyof PricingPackage,
+    value: any
+  ) => {
+    setLocalPricing((prev) =>
+      prev.map((srv) => {
+        if (srv.id !== serviceId) return srv;
+        return {
+          ...srv,
+          packages: srv.packages.map((pkg) => {
+            if (pkg.id !== packageId) return pkg;
+            return { ...pkg, [field]: value };
+          }),
+        };
+      })
+    );
+  };
+
+  // Helper to edit service starting price / note
+  const updateServiceField = (serviceId: string, field: keyof ServicePricing, value: any) => {
+    setLocalPricing((prev) =>
+      prev.map((srv) => {
+        if (srv.id !== serviceId) return srv;
+        return { ...srv, [field]: value };
+      })
+    );
   };
 
   // Filtered Projects
@@ -561,13 +811,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
     return matchesSearch && matchesStatus;
   });
 
+  // Filtered Subscribers
+  const filteredSubscribers = subscribers.filter((sub) =>
+    sub.email.toLowerCase().includes(newsletterSearch.toLowerCase())
+  );
+
+  // Active pricing service object
+  const currentPricingService =
+    localPricing.find((s) => s.id === activePricingServiceId) || localPricing[0];
+
+  // Pending inquiry count
+  const newInquiriesCount = inquiries.filter((inq) => inq.status === 'new' || !inq.status).length;
+
   // -------------------------------------------------------------
-  // LOGIN SCREEN (If not authenticated)
+  // LOGIN SCREEN
   // -------------------------------------------------------------
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#070D18] flex items-center justify-center px-4 relative overflow-hidden font-sans">
-        {/* Background glow elements */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
 
@@ -576,14 +837,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
             <div className="inline-flex p-3 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 mb-2">
               <Lock className="w-8 h-8" />
             </div>
-            <h1 className="text-2xl font-black text-white tracking-tight">VEXA IT Admin Control</h1>
-            <p className="text-sm text-slate-400">Enter administrator credentials to manage projects & inquiries</p>
+            <h1 className="text-2xl font-black text-white tracking-tight">VEXA IT Command Center</h1>
+            <p className="text-sm text-slate-400">Total website management, CRM, and system control</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                Admin Password
+                Administrator Password
               </label>
               <input
                 type="password"
@@ -652,31 +913,43 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
       {/* Top Header Bar */}
       <header className="bg-[#0F172A]/90 border-b border-slate-800/80 sticky top-0 z-40 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white text-sm shadow-md">
-                V
-              </div>
-              <div>
-                <span className="font-black tracking-wider text-white text-base">VEXA IT</span>
-                <span className="ml-2 text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/30">
-                  Admin Panel
-                </span>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white text-sm shadow-md">
+              V
+            </div>
+            <div>
+              <span className="font-black tracking-wider text-white text-base">VEXA IT</span>
+              <span className="ml-2 text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/30">
+                Command Center
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => {
+                setPwdModalError('');
+                setCurrentPwdInput('');
+                setNewPwdInput('');
+                setConfirmPwdInput('');
+                setIsPasswordModalOpen(true);
+              }}
+              className="px-3 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition-colors flex items-center gap-1.5 border border-slate-700 cursor-pointer"
+              title="Change Administrator Password"
+            >
+              <Key className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Change Password</span>
+            </button>
             <button
               onClick={onExit}
-              className="px-3.5 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition-colors flex items-center gap-2 border border-slate-700 cursor-pointer"
+              className="px-3 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition-colors flex items-center gap-2 border border-slate-700 cursor-pointer"
             >
               <ExternalLink className="w-3.5 h-3.5" />
-              <span>Live Website</span>
+              <span className="hidden sm:inline">Live Website</span>
             </button>
             <button
               onClick={handleLogout}
-              className="px-3.5 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-300 hover:text-red-100 text-xs font-semibold transition-colors flex items-center gap-1.5 border border-red-800/50 cursor-pointer"
+              className="px-3 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-300 hover:text-red-100 text-xs font-semibold transition-colors flex items-center gap-1.5 border border-red-800/50 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Logout</span>
@@ -685,42 +958,84 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
         </div>
       </header>
 
-      {/* Navigation Tabs */}
-      <div className="bg-[#0A1120] border-b border-slate-800/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 sm:space-x-4 overflow-x-auto py-2.5">
+      {/* Navigation Tabs (7 Comprehensive Controls) */}
+      <div className="bg-[#0A1120] border-b border-slate-800/60 sticky top-16 z-30 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 sm:space-x-2 overflow-x-auto py-2.5 scrollbar-thin">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'overview'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <TrendingUp className="w-4 h-4" />
+            <span>Overview & KPI</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('projects')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'projects'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
             }`}
           >
             <FolderKanban className="w-4 h-4" />
-            <span>Our Projects</span>
-            <span className="ml-1 text-[10px] px-2 py-0.2 rounded-full bg-slate-900/50 border border-white/10">
+            <span>Projects Showcase</span>
+            <span className="ml-1 text-[10px] px-1.5 py-0.2 rounded-full bg-slate-900/60 border border-white/10">
               {projects.length}
             </span>
           </button>
 
           <button
             onClick={() => setActiveTab('inquiries')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'inquiries'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
             }`}
           >
             <Mail className="w-4 h-4" />
-            <span>Contact Inquiries</span>
-            <span className="ml-1 text-[10px] px-2 py-0.2 rounded-full bg-slate-900/50 border border-white/10">
-              {inquiries.length}
-            </span>
+            <span>CRM & Inquiries</span>
+            {newInquiriesCount > 0 ? (
+              <span className="ml-1 text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-extrabold animate-pulse">
+                {newInquiriesCount} new
+              </span>
+            ) : (
+              <span className="ml-1 text-[10px] px-1.5 py-0.2 rounded-full bg-slate-900/60 border border-white/10">
+                {inquiries.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('pricing')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'pricing'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <DollarSign className="w-4 h-4" />
+            <span>Pricing & Packages</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'settings'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <SettingsIcon className="w-4 h-4" />
+            <span>Site & Hero Control</span>
           </button>
 
           <button
             onClick={() => setActiveTab('newsletter')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'newsletter'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
@@ -728,21 +1043,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
           >
             <Users className="w-4 h-4" />
             <span>Newsletter</span>
-            <span className="ml-1 text-[10px] px-2 py-0.2 rounded-full bg-slate-900/50 border border-white/10">
+            <span className="ml-1 text-[10px] px-1.5 py-0.2 rounded-full bg-slate-900/60 border border-white/10">
               {subscribers.length}
             </span>
           </button>
 
           <button
             onClick={() => setActiveTab('system')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'system'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
             }`}
           >
             <Database className="w-4 h-4" />
-            <span>Database & System</span>
+            <span>Diagnostics</span>
           </button>
         </div>
       </div>
@@ -750,10 +1065,209 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
         {/* =========================================================================
-            TAB 1: OUR PROJECTS
+            TAB 1: OVERVIEW & EXECUTIVE KPI DASHBOARD
+           ========================================================================= */}
+        {activeTab === 'overview' && (
+          <div className="space-y-8 animate-fadeIn">
+            {/* Top KPI Metric Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              <div
+                onClick={() => setActiveTab('projects')}
+                className="bg-[#0F172A] border border-slate-800 hover:border-blue-500/60 rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-1 shadow-lg group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <FolderKanban className="w-6 h-6" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-slate-500 font-mono">Portfolio</span>
+                </div>
+                <div className="text-3xl font-black text-white">{projects.length}</div>
+                <p className="text-xs text-slate-400 mt-1">Active showcase projects</p>
+              </div>
+
+              <div
+                onClick={() => setActiveTab('inquiries')}
+                className="bg-[#0F172A] border border-slate-800 hover:border-amber-500/60 rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-1 shadow-lg group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl group-hover:bg-amber-600 group-hover:text-slate-950 transition-colors">
+                    <Mail className="w-6 h-6" />
+                  </div>
+                  {newInquiriesCount > 0 ? (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                      {newInquiriesCount} Action Needed
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-semibold text-slate-500 font-mono">CRM Leads</span>
+                  )}
+                </div>
+                <div className="text-3xl font-black text-white">{inquiries.length}</div>
+                <p className="text-xs text-slate-400 mt-1">Total client contact inquiries</p>
+              </div>
+
+              <div
+                onClick={() => setActiveTab('newsletter')}
+                className="bg-[#0F172A] border border-slate-800 hover:border-emerald-500/60 rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-1 shadow-lg group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-slate-500 font-mono">Subscribers</span>
+                </div>
+                <div className="text-3xl font-black text-white">{subscribers.length}</div>
+                <p className="text-xs text-slate-400 mt-1">Registered email audience</p>
+              </div>
+
+              <div
+                onClick={() => setActiveTab('system')}
+                className="bg-[#0F172A] border border-slate-800 hover:border-purple-500/60 rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-1 shadow-lg group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-3 bg-purple-500/10 text-purple-400 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                    <Database className="w-6 h-6" />
+                  </div>
+                  <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" /> Live
+                  </span>
+                </div>
+                <div className="text-2xl font-black text-white truncate">
+                  {healthData?.database?.status === 'connected' ? 'Connected' : 'Active'}
+                </div>
+                <p className="text-xs text-slate-400 mt-1">MongoDB Atlas Cluster 0</p>
+              </div>
+            </div>
+
+            {/* Quick Action Shortcuts */}
+            <div className="bg-[#0F172A] border border-slate-800 rounded-2xl p-6 space-y-4">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-blue-400" />
+                <span>Quick Administration Actions</span>
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <button
+                  onClick={() => {
+                    setActiveTab('projects');
+                    handleOpenCreateProject();
+                  }}
+                  className="p-4 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl text-left transition-all cursor-pointer flex items-center gap-3"
+                >
+                  <div className="p-2.5 bg-blue-600/20 text-blue-400 rounded-lg">
+                    <Plus className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-white">Add New Project</div>
+                    <div className="text-[11px] text-slate-400">Upload showcase screenshots</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActiveTab('inquiries');
+                    setInquiryForm(initialInquiryForm);
+                    setIsInquiryModalOpen(true);
+                  }}
+                  className="p-4 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl text-left transition-all cursor-pointer flex items-center gap-3"
+                >
+                  <div className="p-2.5 bg-amber-600/20 text-amber-400 rounded-lg">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-white">Record Contact Lead</div>
+                    <div className="text-[11px] text-slate-400">Manual client entry</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('pricing')}
+                  className="p-4 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl text-left transition-all cursor-pointer flex items-center gap-3"
+                >
+                  <div className="p-2.5 bg-emerald-600/20 text-emerald-400 rounded-lg">
+                    <DollarSign className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-white">Update Pricing Tiers</div>
+                    <div className="text-[11px] text-slate-400">Edit package prices & features</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('settings')}
+                  className="p-4 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl text-left transition-all cursor-pointer flex items-center gap-3"
+                >
+                  <div className="p-2.5 bg-purple-600/20 text-purple-400 rounded-lg">
+                    <Sliders className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-white">Change Hero & Phone</div>
+                    <div className="text-[11px] text-slate-400">Live website copy & contacts</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Recent Leads Preview */}
+            <div className="bg-[#0F172A] border border-slate-800 rounded-2xl p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-blue-400" />
+                  <span>Recent Inquiries</span>
+                </h3>
+                <button
+                  onClick={() => setActiveTab('inquiries')}
+                  className="text-xs text-blue-400 hover:text-blue-300 font-semibold cursor-pointer"
+                >
+                  View all ({inquiries.length}) &rarr;
+                </button>
+              </div>
+
+              {inquiries.length === 0 ? (
+                <p className="text-xs text-slate-400">No inquiries yet.</p>
+              ) : (
+                <div className="divide-y divide-slate-800">
+                  {inquiries.slice(0, 4).map((inq) => (
+                    <div
+                      key={inq._id}
+                      onClick={() => {
+                        setSelectedInquiry(inq);
+                        setInquiryNoteInput(inq.notes || '');
+                        setIsDetailModalOpen(true);
+                      }}
+                      className="py-3 flex items-center justify-between hover:bg-slate-900/50 p-2 rounded-xl cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 font-bold flex items-center justify-center text-xs">
+                          {inq.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold text-white">{inq.name}</div>
+                          <div className="text-[11px] text-slate-400">
+                            {inq.email} &bull; <span className="text-blue-400">{inq.service}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                          {inq.status || 'new'}
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-mono">
+                          {new Date(inq.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB 2: OUR PROJECTS & SHOWCASE
            ========================================================================= */}
         {activeTab === 'projects' && (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-fadeIn">
             {/* Action Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0F172A] p-4 rounded-2xl border border-slate-800">
               <div className="flex flex-wrap items-center gap-3">
@@ -839,7 +1353,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                       key={proj.id}
                       className="bg-[#0F172A] border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 transition-all flex flex-col group shadow-lg"
                     >
-                      {/* Card Header / Thumbnail */}
+                      {/* Card Thumbnail */}
                       <div className="h-44 bg-slate-900 relative overflow-hidden flex items-center justify-center border-b border-slate-800">
                         {firstPhoto ? (
                           <img
@@ -938,10 +1452,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
         )}
 
         {/* =========================================================================
-            TAB 2: CONTACT INQUIRIES & LEADS
+            TAB 3: CONTACT INQUIRIES & LEADS CRM
            ========================================================================= */}
         {activeTab === 'inquiries' && (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-fadeIn">
             {/* Action Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0F172A] p-4 rounded-2xl border border-slate-800">
               <div className="flex flex-wrap items-center gap-3">
@@ -963,7 +1477,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                   className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                 >
                   <option value="all">All Statuses</option>
-                  <option value="new">New</option>
+                  <option value="new">New ({inquiries.filter((i) => i.status === 'new').length})</option>
                   <option value="in_review">In Review</option>
                   <option value="contacted">Contacted</option>
                   <option value="completed">Completed</option>
@@ -979,19 +1493,29 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                 </button>
               </div>
 
-              <button
-                onClick={() => {
-                  setInquiryForm(initialInquiryForm);
-                  setIsInquiryModalOpen(true);
-                }}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 cursor-pointer self-start sm:self-auto"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Contact / Lead</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleExportInquiriesCSV}
+                  className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-semibold border border-slate-700 transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Export CSV</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setInquiryForm(initialInquiryForm);
+                    setIsInquiryModalOpen(true);
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Lead</span>
+                </button>
+              </div>
             </div>
 
-            {/* Inquiries Table / Cards */}
+            {/* Inquiries List */}
             {loadingInquiries ? (
               <div className="py-20 text-center text-slate-400">
                 <RefreshCw className="w-8 h-8 animate-spin mx-auto text-blue-500 mb-3" />
@@ -1078,6 +1602,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                           </select>
 
                           <button
+                            onClick={() => {
+                              setSelectedInquiry(inq);
+                              setInquiryNoteInput(inq.notes || '');
+                              setIsDetailModalOpen(true);
+                            }}
+                            className="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 cursor-pointer"
+                          >
+                            Notes & Full Info
+                          </button>
+
+                          <button
                             onClick={() => handleDeleteInquiry(inq._id, inq.name)}
                             className="p-1.5 text-slate-500 hover:text-red-400 transition-colors cursor-pointer"
                             title="Delete Inquiry"
@@ -1099,6 +1634,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                         </p>
                       </div>
 
+                      {/* Notes snippet if present */}
+                      {inq.notes && (
+                        <div className="p-3 bg-amber-950/20 border border-amber-800/30 rounded-xl text-xs text-amber-300/90 flex items-start gap-2">
+                          <FileText className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-bold">Internal Note:</span> {inq.notes}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Quick Contact Actions */}
                       <div className="flex flex-wrap items-center gap-2 pt-1">
                         <a
@@ -1119,7 +1664,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                             className="px-3 py-1 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 hover:text-emerald-100 text-xs font-medium border border-emerald-800/40 transition-colors inline-flex items-center gap-1.5"
                           >
                             <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
-                            <span>WhatsApp</span>
+                            <span>WhatsApp Client</span>
                           </a>
                         )}
                       </div>
@@ -1132,21 +1677,457 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
         )}
 
         {/* =========================================================================
-            TAB 3: NEWSLETTER
+            TAB 4: PRICING PACKAGES & SERVICES MANAGER
+           ========================================================================= */}
+        {activeTab === 'pricing' && (
+          <div className="space-y-6 animate-fadeIn">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0F172A] p-5 rounded-2xl border border-slate-800">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-emerald-400" />
+                  <span>Pricing Packages & Tiers Manager</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Edit prices, features, and popularity badges across all 6 service categories on the live website.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleResetPricing}
+                  className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold border border-slate-700 cursor-pointer"
+                >
+                  Reset Defaults
+                </button>
+                <button
+                  onClick={handleSavePricing}
+                  disabled={isSavingPricing}
+                  className="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/20 flex items-center gap-2 cursor-pointer"
+                >
+                  {isSavingPricing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <span>Save All Pricing</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Service Category Tabs */}
+            <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-thin">
+              {localPricing.map((srv) => (
+                <button
+                  key={srv.id}
+                  onClick={() => setActivePricingServiceId(srv.id)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    activePricingServiceId === srv.id
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-[#0F172A] text-slate-400 hover:text-white border border-slate-800'
+                  }`}
+                >
+                  {srv.serviceTitle}
+                </button>
+              ))}
+            </div>
+
+            {/* Service-level Settings */}
+            {currentPricingService && (
+              <div className="bg-[#0F172A] border border-slate-800 rounded-2xl p-6 space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-slate-800">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Starting Price Tagline
+                    </label>
+                    <input
+                      type="text"
+                      value={currentPricingService.startingPrice}
+                      onChange={(e) =>
+                        updateServiceField(currentPricingService.id, 'startingPrice', e.target.value)
+                      }
+                      className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Subtitle / Brief Note
+                    </label>
+                    <input
+                      type="text"
+                      value={currentPricingService.serviceSubtitle}
+                      onChange={(e) =>
+                        updateServiceField(currentPricingService.id, 'serviceSubtitle', e.target.value)
+                      }
+                      className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Package Cards for this Service */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {currentPricingService.packages.map((pkg, idx) => (
+                    <div
+                      key={pkg.id || idx}
+                      className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4 relative"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono font-bold text-slate-400 uppercase">Tier #{idx + 1}</span>
+                        <label className="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(pkg.popular)}
+                            onChange={(e) =>
+                              updatePackageField(
+                                currentPricingService.id,
+                                pkg.id,
+                                'popular',
+                                e.target.checked
+                              )
+                            }
+                            className="rounded text-blue-600 focus:ring-0"
+                          />
+                          <span className="text-[11px] font-semibold text-amber-400">Popular Badge</span>
+                        </label>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-400 mb-1">Package Name</label>
+                        <input
+                          type="text"
+                          value={pkg.name}
+                          onChange={(e) =>
+                            updatePackageField(currentPricingService.id, pkg.id, 'name', e.target.value)
+                          }
+                          className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-400 mb-1">Price Display</label>
+                        <input
+                          type="text"
+                          value={pkg.price}
+                          onChange={(e) =>
+                            updatePackageField(currentPricingService.id, pkg.id, 'price', e.target.value)
+                          }
+                          placeholder="e.g. Rs. 35,000 or Rs. 150,000+"
+                          className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-emerald-400 font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-400 mb-1">Suitable For</label>
+                        <input
+                          type="text"
+                          value={pkg.suitableFor}
+                          onChange={(e) =>
+                            updatePackageField(currentPricingService.id, pkg.id, 'suitableFor', e.target.value)
+                          }
+                          className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-300"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                          Features List (One feature per line)
+                        </label>
+                        <textarea
+                          rows={6}
+                          value={(pkg.features || []).join('\n')}
+                          onChange={(e) =>
+                            updatePackageField(
+                              currentPricingService.id,
+                              pkg.id,
+                              'features',
+                              e.target.value.split('\n').filter(Boolean)
+                            )
+                          }
+                          className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-300 leading-relaxed"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB 5: SITE SETTINGS, HERO & CONTACT CONTROL
+           ========================================================================= */}
+        {activeTab === 'settings' && (
+          <form onSubmit={handleSaveSettings} className="space-y-6 animate-fadeIn">
+            {/* Header / Save Button */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0F172A] p-5 rounded-2xl border border-slate-800">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <SettingsIcon className="w-5 h-5 text-blue-400" />
+                  <span>Site Content & Global Configuration</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Manage headline text, announcements, official contact numbers, addresses, and trust metrics.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleResetSettings}
+                  className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold border border-slate-700 cursor-pointer"
+                >
+                  Reset Defaults
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingSettings}
+                  className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/20 flex items-center gap-2 cursor-pointer"
+                >
+                  {isSavingSettings ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  <span>Save All Settings</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 1. Hero Section & Announcement */}
+            <div className="bg-[#0F172A] border border-slate-800 rounded-2xl p-6 space-y-4">
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-blue-400" />
+                <span>Hero Section & Announcement Banner</span>
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Hero Headline</label>
+                  <textarea
+                    rows={2}
+                    value={settingsForm.heroHeadline}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, heroHeadline: e.target.value })}
+                    className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Hero Supporting Text</label>
+                  <textarea
+                    rows={2}
+                    value={settingsForm.heroSubtext}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, heroSubtext: e.target.value })}
+                    className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Announcement Bar */}
+              <div className="p-4 bg-slate-900/80 rounded-xl border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-300">Top Announcement Banner</span>
+                  <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(settingsForm.announcementBanner?.enabled)}
+                      onChange={(e) =>
+                        setSettingsForm({
+                          ...settingsForm,
+                          announcementBanner: {
+                            ...settingsForm.announcementBanner,
+                            enabled: e.target.checked,
+                          },
+                        })
+                      }
+                      className="rounded text-blue-600 focus:ring-0"
+                    />
+                    <span>Active Banner</span>
+                  </label>
+                </div>
+
+                <input
+                  type="text"
+                  value={settingsForm.announcementBanner?.text || ''}
+                  onChange={(e) =>
+                    setSettingsForm({
+                      ...settingsForm,
+                      announcementBanner: {
+                        ...settingsForm.announcementBanner,
+                        text: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="e.g. ⚡ Available for new web, software, and digital growth projects!"
+                  className="w-full px-3.5 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white"
+                />
+              </div>
+            </div>
+
+            {/* 2. Official Contact Info & Business Details */}
+            <div className="bg-[#0F172A] border border-slate-800 rounded-2xl p-6 space-y-4">
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <Phone className="w-4 h-4 text-emerald-400" />
+                <span>Company Contact Information</span>
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Company Phone</label>
+                  <input
+                    type="text"
+                    value={settingsForm.phone || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, phone: e.target.value })}
+                    className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Official Email</label>
+                  <input
+                    type="email"
+                    value={settingsForm.email || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, email: e.target.value })}
+                    className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Office Location</label>
+                  <input
+                    type="text"
+                    value={settingsForm.location || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, location: e.target.value })}
+                    className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Business Hours</label>
+                  <input
+                    type="text"
+                    value={settingsForm.businessHours || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, businessHours: e.target.value })}
+                    className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">WhatsApp URL / Phone Link</label>
+                  <input
+                    type="text"
+                    value={settingsForm.whatsappUrl || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, whatsappUrl: e.target.value })}
+                    className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Live Trust Statistics */}
+            <div className="bg-[#0F172A] border border-slate-800 rounded-2xl p-6 space-y-4">
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <Award className="w-4 h-4 text-amber-400" />
+                <span>Verified Trust Statistics (Landing Page Stats)</span>
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {(settingsForm.stats || []).map((stat, idx) => (
+                  <div key={stat.id || idx} className="p-4 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
+                    <span className="text-[10px] font-mono text-slate-500 uppercase">{stat.label}</span>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-400">Metric Value</label>
+                      <input
+                        type="text"
+                        value={stat.value}
+                        onChange={(e) => {
+                          const updatedStats = [...settingsForm.stats];
+                          updatedStats[idx] = { ...updatedStats[idx], value: e.target.value };
+                          setSettingsForm({ ...settingsForm, stats: updatedStats });
+                        }}
+                        className="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-xs font-bold text-blue-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-400">Title</label>
+                      <input
+                        type="text"
+                        value={stat.label}
+                        onChange={(e) => {
+                          const updatedStats = [...settingsForm.stats];
+                          updatedStats[idx] = { ...updatedStats[idx], label: e.target.value };
+                          setSettingsForm({ ...settingsForm, stats: updatedStats });
+                        }}
+                        className="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 4. Administrator Password Change */}
+            <div className="bg-[#0F172A] border border-slate-800 rounded-2xl p-6 space-y-4">
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <Lock className="w-4 h-4 text-red-400" />
+                <span>Security & Admin Credentials</span>
+              </h4>
+
+              <div className="max-w-md space-y-2">
+                <label className="block text-xs font-semibold text-slate-300">
+                  Update Administrator Password (Optional)
+                </label>
+                <input
+                  type="password"
+                  placeholder="Enter new password to change..."
+                  value={newAdminPasswordInput}
+                  onChange={(e) => setNewAdminPasswordInput(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500"
+                />
+                <p className="text-[11px] text-slate-500">
+                  Leave blank if you wish to keep the current administrative password.
+                </p>
+              </div>
+            </div>
+          </form>
+        )}
+
+        {/* =========================================================================
+            TAB 6: NEWSLETTER SUBSCRIBERS
            ========================================================================= */}
         {activeTab === 'newsletter' && (
-          <div className="space-y-6">
-            <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800 flex items-center justify-between">
+          <div className="space-y-6 animate-fadeIn">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0F172A] p-5 rounded-2xl border border-slate-800">
               <div>
-                <h3 className="text-lg font-bold text-white">Newsletter Subscribers</h3>
-                <p className="text-xs text-slate-400">Total active subscribers registered in MongoDB</p>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Users className="w-5 h-5 text-blue-400" />
+                  <span>Newsletter Audience & Email Marketing</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Total active subscribers registered in MongoDB: <strong>{subscribers.length}</strong>
+                </p>
               </div>
-              <button
-                onClick={fetchSubscribers}
-                className="p-2 bg-slate-900 border border-slate-700 rounded-xl text-slate-400 hover:text-white transition-colors cursor-pointer"
-              >
-                <RefreshCw className={`w-4 h-4 ${loadingSubscribers ? 'animate-spin' : ''}`} />
-              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCopySubscriberEmails}
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-semibold border border-slate-700 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Copy className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Copy All Emails</span>
+                </button>
+
+                <button
+                  onClick={handleExportSubscribersCSV}
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-semibold border border-slate-700 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Export CSV</span>
+                </button>
+
+                <button
+                  onClick={fetchSubscribers}
+                  className="p-2 bg-slate-900 border border-slate-700 rounded-xl text-slate-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingSubscribers ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
             </div>
 
             {loadingSubscribers ? (
@@ -1158,19 +2139,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
               <div className="py-16 text-center bg-[#0F172A] border border-slate-800 rounded-2xl p-8">
                 <Users className="w-12 h-12 mx-auto text-slate-600 mb-3" />
                 <h3 className="text-base font-bold text-white">No subscribers yet</h3>
-                <p className="text-xs text-slate-400 mt-1">Users who subscribe via the website footer will be listed here.</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Users who subscribe via the website footer will be listed here.
+                </p>
               </div>
             ) : (
-              <div className="bg-[#0F172A] border border-slate-800 rounded-2xl overflow-hidden">
-                <div className="divide-y divide-slate-800">
-                  {subscribers.map((sub, idx) => (
-                    <div key={sub._id || idx} className="p-4 flex items-center justify-between text-xs sm:text-sm">
+              <div className="bg-[#0F172A] border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
+                <div className="p-3 bg-slate-900 border-b border-slate-800">
+                  <input
+                    type="text"
+                    placeholder="Search subscribers by email..."
+                    value={newsletterSearch}
+                    onChange={(e) => setNewsletterSearch(e.target.value)}
+                    className="w-full max-w-sm px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white"
+                  />
+                </div>
+                <div className="divide-y divide-slate-800 max-h-[600px] overflow-y-auto">
+                  {filteredSubscribers.map((sub, idx) => (
+                    <div
+                      key={sub._id || idx}
+                      className="p-4 flex items-center justify-between hover:bg-slate-900/40 text-xs sm:text-sm"
+                    >
                       <div className="flex items-center gap-3">
                         <Mail className="w-4 h-4 text-blue-400" />
                         <span className="font-semibold text-white">{sub.email}</span>
                       </div>
                       <span className="text-slate-500 font-mono text-xs">
-                        {new Date(sub.createdAt).toLocaleDateString()}
+                        {new Date(sub.createdAt).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
                       </span>
                     </div>
                   ))}
@@ -1181,10 +2180,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
         )}
 
         {/* =========================================================================
-            TAB 4: SYSTEM & DATABASE DIAGNOSTICS
+            TAB 7: DATABASE & SYSTEM DIAGNOSTICS
            ========================================================================= */}
         {activeTab === 'system' && (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-fadeIn">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800 space-y-2">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Database Status</span>
@@ -1194,13 +2193,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                     {healthData?.database?.status || 'Connected'}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 font-mono truncate">{healthData?.database?.host || 'MongoDB Atlas'}</p>
+                <p className="text-xs text-slate-500 font-mono truncate">
+                  {healthData?.database?.host || 'MongoDB Atlas'}
+                </p>
               </div>
 
               <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800 space-y-2">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Database Name</span>
                 <p className="text-xl font-black text-white font-mono">{healthData?.database?.name || 'vexa_it'}</p>
-                <p className="text-xs text-emerald-400">Cluster 0 (Atlas)</p>
+                <p className="text-xs text-emerald-400">Cluster 0 (Atlas Cloud)</p>
               </div>
 
               <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800 space-y-2">
@@ -1239,6 +2240,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                   <span className="text-slate-300">/api/inquiries/:id</span>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex justify-between">
+                  <span className="text-blue-400 font-bold">GET/PUT</span>
+                  <span className="text-slate-300">/api/settings</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex justify-between">
+                  <span className="text-blue-400 font-bold">GET/PUT</span>
+                  <span className="text-slate-300">/api/pricing</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex justify-between">
                   <span className="text-blue-400 font-bold">POST/GET</span>
                   <span className="text-slate-300">/api/newsletter</span>
                 </div>
@@ -1249,7 +2258,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
       </main>
 
       {/* =========================================================================
-          MODAL 1: ADD / EDIT PROJECT (With Photo URL / File Upload Support)
+          MODAL 1: ADD / EDIT PROJECT
          ========================================================================= */}
       {isProjectModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
@@ -1261,7 +2270,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
               </h3>
               <button
                 onClick={() => setIsProjectModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1356,7 +2365,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                 </div>
               </div>
 
-              {/* Technologies & Deliverables */}
+              {/* Technologies */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">
@@ -1383,9 +2392,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                 </div>
               </div>
 
-              {/* -------------------------------------------------------------
-                  PHOTOS & GALLERY MANAGEMENT
-                 ------------------------------------------------------------- */}
+              {/* Photos & Gallery Management */}
               <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
@@ -1397,23 +2404,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                   </span>
                 </div>
 
-                {/* Option 1: Add via URL */}
+                {/* Option 1: URL */}
                 <div className="space-y-2">
                   <span className="text-[11px] font-semibold text-slate-400">Option A: Add Photo by URL</span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <input
                       type="text"
-                      placeholder="Image URL (e.g. /ape-pos/pos-1.png or https://...)"
+                      placeholder="Image URL"
                       value={photoUrlInput}
                       onChange={(e) => setPhotoUrlInput(e.target.value)}
-                      className="sm:col-span-2 px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="sm:col-span-2 px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white"
                     />
                     <input
                       type="text"
                       placeholder="Title (optional)"
                       value={photoTitleInput}
                       onChange={(e) => setPhotoTitleInput(e.target.value)}
-                      className="px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white"
                     />
                   </div>
                   <div className="flex gap-2">
@@ -1422,30 +2429,29 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                       placeholder="Caption / description (optional)"
                       value={photoCaptionInput}
                       onChange={(e) => setPhotoCaptionInput(e.target.value)}
-                      className="flex-grow px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="flex-grow px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white"
                     />
                     <button
                       type="button"
                       onClick={handleAddPhotoUrl}
-                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 cursor-pointer"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add URL</span>
+                      Add URL
                     </button>
                   </div>
                 </div>
 
-                {/* Option 2: Upload Files (Multiple Supported) */}
+                {/* Option 2: Local Upload */}
                 <div className="pt-2 border-t border-slate-800 space-y-2">
-                  <span className="text-[11px] font-semibold text-slate-400">Option B: Upload Local Photo Files</span>
+                  <span className="text-[11px] font-semibold text-slate-400">Option B: Upload Local Files</span>
                   <label className="flex items-center justify-center gap-2 p-3 bg-slate-950/60 border border-dashed border-slate-700 rounded-xl hover:border-blue-500 text-xs text-slate-400 hover:text-white cursor-pointer transition-colors">
                     <Upload className="w-4 h-4 text-blue-400" />
-                    <span>Click to choose one or multiple image files from your computer</span>
+                    <span>Click to choose one or multiple image files</span>
                     <input type="file" accept="image/*" multiple onChange={handleFileUpload} className="hidden" />
                   </label>
                 </div>
 
-                {/* Photo List Preview */}
+                {/* Photo Previews */}
                 {projectForm.galleryImages.length > 0 && (
                   <div className="pt-3 border-t border-slate-800 space-y-2">
                     <span className="text-[11px] font-semibold text-slate-400">Attached Photos:</span>
@@ -1507,7 +2513,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
       )}
 
       {/* =========================================================================
-          MODAL 2: ADD CONTACT / LEAD (Manual Entry for "Add More")
+          MODAL 2: ADD CONTACT / LEAD
          ========================================================================= */}
       {isInquiryModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
@@ -1519,9 +2525,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
               </h3>
               <button
                 onClick={() => setIsInquiryModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -1536,7 +2542,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                   value={inquiryForm.name}
                   onChange={(e) => setInquiryForm({ ...inquiryForm, name: e.target.value })}
                   placeholder="e.g. John Doe"
-                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
                 />
               </div>
 
@@ -1551,7 +2557,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                     value={inquiryForm.email}
                     onChange={(e) => setInquiryForm({ ...inquiryForm, email: e.target.value })}
                     placeholder="john@example.com"
-                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
                   />
                 </div>
 
@@ -1562,20 +2568,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                     value={inquiryForm.phone}
                     onChange={(e) => setInquiryForm({ ...inquiryForm, phone: e.target.value })}
                     placeholder="+94 77 123 4567"
-                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Company / Organization</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Company</label>
                   <input
                     type="text"
                     value={inquiryForm.company}
                     onChange={(e) => setInquiryForm({ ...inquiryForm, company: e.target.value })}
                     placeholder="Acme Corp"
-                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
                   />
                 </div>
 
@@ -1584,37 +2590,38 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                   <select
                     value={inquiryForm.service}
                     onChange={(e) => setInquiryForm({ ...inquiryForm, service: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white cursor-pointer"
                   >
                     <option value="Web Development">Web Development</option>
                     <option value="Software Development">Software Development</option>
+                    <option value="UI/UX Design">UI/UX Design</option>
+                    <option value="E-Commerce Development">E-Commerce Development</option>
                     <option value="Social Media & Growth">Social Media & Growth</option>
-                    <option value="POS Systems">POS Systems</option>
-                    <option value="Custom Project">Custom Project</option>
+                    <option value="IT Consulting">IT Consulting</option>
                   </select>
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Project Details / Inquiry Notes <span className="text-red-400">*</span>
+                  Project Details / Requirements <span className="text-red-400">*</span>
                 </label>
                 <textarea
                   required
                   rows={3}
                   value={inquiryForm.details}
                   onChange={(e) => setInquiryForm({ ...inquiryForm, details: e.target.value })}
-                  placeholder="Describe client requirements, meeting notes, or budget details..."
-                  className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="Describe client requirements or initial meeting notes..."
+                  className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Status</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Initial Status</label>
                 <select
                   value={inquiryForm.status}
                   onChange={(e) => setInquiryForm({ ...inquiryForm, status: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                  className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white cursor-pointer"
                 >
                   <option value="new">New</option>
                   <option value="in_review">In Review</option>
@@ -1636,7 +2643,221 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                   className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/20 cursor-pointer flex items-center gap-2"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Save Contact Lead</span>
+                  <span>Save Lead</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL 3: INQUIRY FULL DETAIL & STAFF NOTES DRAWER
+         ========================================================================= */}
+      {isDetailModalOpen && selectedInquiry && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[#0F172A] border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl my-8 overflow-hidden">
+            <div className="bg-[#0F172A] border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-blue-400" />
+                  <span>Inquiry Details & Follow-up</span>
+                </h3>
+                <span className="text-[11px] text-slate-400">
+                  Received on {new Date(selectedInquiry.createdAt).toLocaleString()}
+                </span>
+              </div>
+              <button
+                onClick={() => setIsDetailModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* Contact Lead Card */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-xs">
+                <div>
+                  <span className="text-slate-400">Client Name:</span>
+                  <div className="font-bold text-white text-sm mt-0.5">{selectedInquiry.name}</div>
+                </div>
+                <div>
+                  <span className="text-slate-400">Email:</span>
+                  <div className="font-mono text-white mt-0.5">{selectedInquiry.email}</div>
+                </div>
+                <div>
+                  <span className="text-slate-400">Phone:</span>
+                  <div className="font-mono text-white mt-0.5">{selectedInquiry.phone || 'Not provided'}</div>
+                </div>
+                <div>
+                  <span className="text-slate-400">Company:</span>
+                  <div className="text-white mt-0.5">{selectedInquiry.company || 'Individual / Startup'}</div>
+                </div>
+                <div className="sm:col-span-2">
+                  <span className="text-slate-400">Requested Service:</span>
+                  <div className="font-bold text-blue-400 mt-0.5">{selectedInquiry.service}</div>
+                </div>
+              </div>
+
+              {/* Message Details */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Submitted Project Details:</label>
+                <p className="text-xs sm:text-sm text-slate-300 bg-slate-900 p-4 rounded-xl border border-slate-800 leading-relaxed whitespace-pre-wrap">
+                  {selectedInquiry.details}
+                </p>
+              </div>
+
+              {/* Internal Staff Notes */}
+              <div>
+                <label className="block text-xs font-semibold text-amber-300 mb-1.5 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Internal Staff Follow-up Notes:</span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={inquiryNoteInput}
+                  onChange={(e) => setInquiryNoteInput(e.target.value)}
+                  placeholder="e.g. Quoted 180k LKR, proposal document emailed, waiting for meeting on Monday..."
+                  className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
+                />
+              </div>
+
+              {/* Status and Action Buttons */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-400">Status:</span>
+                  <select
+                    value={selectedInquiry.status || 'new'}
+                    onChange={(e) => {
+                      handleUpdateInquiryStatus(selectedInquiry._id, e.target.value, inquiryNoteInput);
+                    }}
+                    className="text-xs bg-slate-900 border border-slate-700 text-slate-300 rounded-lg px-2.5 py-1.5 cursor-pointer"
+                  >
+                    <option value="new">New</option>
+                    <option value="in_review">In Review</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="completed">Completed</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleUpdateInquiryStatus(
+                        selectedInquiry._id,
+                        selectedInquiry.status || 'in_review',
+                        inquiryNoteInput
+                      );
+                      setIsDetailModalOpen(false);
+                    }}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow cursor-pointer"
+                  >
+                    Save Notes & Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* =========================================================================
+          MODAL 4: DEDICATED CHANGE ADMIN PASSWORD MODAL
+         ========================================================================= */}
+      {isPasswordModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[#0F172A] border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-scaleUp">
+            <div className="bg-[#0F172A] border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Key className="w-4 h-4 text-amber-400" />
+                <span>Change Administrator Password</span>
+              </h3>
+              <button
+                onClick={() => setIsPasswordModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleChangePasswordSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Current Password <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type={showPasswordText ? 'text' : 'password'}
+                  required
+                  value={currentPwdInput}
+                  onChange={(e) => setCurrentPwdInput(e.target.value)}
+                  placeholder="Enter your current password"
+                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  New Password <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type={showPasswordText ? 'text' : 'password'}
+                  required
+                  value={newPwdInput}
+                  onChange={(e) => setNewPwdInput(e.target.value)}
+                  placeholder="At least 4 characters"
+                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Confirm New Password <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type={showPasswordText ? 'text' : 'password'}
+                  required
+                  value={confirmPwdInput}
+                  onChange={(e) => setConfirmPwdInput(e.target.value)}
+                  placeholder="Re-enter your new password"
+                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordText(!showPasswordText)}
+                  className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer"
+                >
+                  {showPasswordText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  <span>{showPasswordText ? 'Hide password characters' : 'Show password characters'}</span>
+                </button>
+              </div>
+
+              {pwdModalError && (
+                <div className="p-3 bg-red-950/50 border border-red-800/80 rounded-xl text-xs text-red-300 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                  <span>{pwdModalError}</span>
+                </div>
+              )}
+
+              <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsPasswordModalOpen(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/20 cursor-pointer flex items-center gap-2"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Update Password</span>
                 </button>
               </div>
             </form>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowRight, Code2, Layers, ShieldCheck, CheckCircle, Sparkles } from 'lucide-react';
-import { companyData } from '../data/company';
+import { useSite } from '../context/SiteContext';
 
 interface HeroProps {
   onStartProjectClick: () => void;
@@ -11,6 +11,8 @@ export const Hero: React.FC<HeroProps> = ({
   onStartProjectClick,
   onExploreServicesClick,
 }) => {
+  const { settings } = useSite();
+
   return (
     <section
       id="home"
@@ -28,24 +30,22 @@ export const Hero: React.FC<HeroProps> = ({
           
           {/* Left Column: Headline, Copy & CTAs */}
           <div className="lg:col-span-7 space-y-8 text-center lg:text-left">
-            {/* Top Eyebrow Tag */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-900/40 border border-blue-500/30 text-blue-300 text-xs font-semibold tracking-wide uppercase">
-              <span className="w-2 h-2 rounded-full bg-[#00D2FF] animate-ping" />
-              <span>Full-Cycle IT & Software Engineering</span>
-            </div>
+            {/* Top Eyebrow Tag / Dynamic Announcement */}
+            {settings.announcementBanner?.enabled && (
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-900/40 border border-blue-500/30 text-blue-300 text-xs font-semibold tracking-wide">
+                <span className="w-2 h-2 rounded-full bg-[#00D2FF] animate-ping" />
+                <span>{settings.announcementBanner.text || 'Full-Cycle IT & Software Engineering'}</span>
+              </div>
+            )}
 
             {/* Main Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15] text-white">
-              Technology That <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00D2FF] via-blue-400 to-[#0066FF]">
-                Moves Your Business
-              </span>{' '}
-              Forward.
+              {settings.heroHeadline || 'Technology & Digital Growth That Moves Your Business Forward.'}
             </h1>
 
             {/* Supporting Copy */}
             <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto lg:mx-0 font-normal leading-relaxed">
-              {companyData.heroSubtext}
+              {settings.heroSubtext}
             </p>
 
             {/* CTA Buttons */}

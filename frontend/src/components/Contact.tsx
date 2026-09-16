@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { companyData } from '../data/company';
+import { useSite } from '../context/SiteContext';
 import { servicesData } from '../data/services';
 import {
   Mail,
@@ -29,6 +29,7 @@ export const Contact: React.FC<ContactProps> = ({
   initialPrice,
   isStandalone = false,
 }) => {
+  const { settings } = useSite();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -133,7 +134,7 @@ export const Contact: React.FC<ContactProps> = ({
 
       // Optional fallback to formsubmit email forwarding if offline or during static test
       try {
-        const fallbackRes = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(companyData.email)}`, {
+        const fallbackRes = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(settings.email || 'vexa.it2026@gmail.com')}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -171,7 +172,7 @@ export const Contact: React.FC<ContactProps> = ({
       setErrorMessage(
         err instanceof Error
           ? err.message
-          : 'Something went wrong while sending your inquiry. Please try again or reach out directly to vexa.it2026@gmail.com.'
+          : `Something went wrong while sending your inquiry. Please try again or reach out directly to ${settings.email || 'vexa.it2026@gmail.com'}.`
       );
     } finally {
       setIsSubmitting(false);
@@ -179,7 +180,7 @@ export const Contact: React.FC<ContactProps> = ({
   };
 
   const handleCopyEmail = () => {
-    navigator.clipboard.writeText(companyData.email);
+    navigator.clipboard.writeText(settings.email || 'vexa.it2026@gmail.com');
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 2000);
   };
@@ -218,25 +219,21 @@ export const Contact: React.FC<ContactProps> = ({
           </h1>
 
           <p className="text-lg text-slate-600 leading-relaxed">
-            Have a project in mind or need expert technical advisory? Tell us about your goals and our team will get back to you within 24 business hours.
+            Reach out through your preferred communication channel or schedule an introductory discovery session.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+        {/* Contact Info Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
           
-          {/* Contact Information & Direct Channels (Left 5 Cols) */}
-          <div className="lg:col-span-5 space-y-8">
-            <div className="rounded-2xl bg-[#0A192F] p-8 text-white shadow-xl space-y-8 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
+          {/* Left Column: Direct Contact Details & Live Presence */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="bg-[#0A192F] text-white p-8 rounded-3xl border border-slate-800 shadow-xl space-y-8 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
               <div>
-                <span className="text-xs font-bold text-[#00D2FF] tracking-wider uppercase">
-                  Contact Information
-                </span>
-                <h3 className="text-2xl font-bold text-white mt-1">
-                  Connect Directly
-                </h3>
-                <p className="text-sm text-slate-300 mt-2">
+                <h3 className="text-xl font-bold tracking-tight">Direct Channels</h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                   Reach out through your preferred communication channel or schedule an introductory discovery session.
                 </p>
               </div>
@@ -252,10 +249,10 @@ export const Contact: React.FC<ContactProps> = ({
                   <div className="flex-1">
                     <p className="text-xs text-slate-400 font-semibold uppercase">Email Us</p>
                     <a
-                      href={`mailto:${companyData.email}`}
+                      href={`mailto:${settings.email}`}
                       className="text-white font-medium hover:text-[#00D2FF] transition-colors"
                     >
-                      {companyData.email}
+                      {settings.email}
                     </a>
                     <div className="mt-1">
                       <button
@@ -287,10 +284,10 @@ export const Contact: React.FC<ContactProps> = ({
                   <div className="flex-1">
                     <p className="text-xs text-slate-400 font-semibold uppercase">Call / WhatsApp</p>
                     <a
-                      href="tel:+94712696668"
+                      href={`tel:${settings.phone?.replace(/[^0-9+]/g, '')}`}
                       className="text-white font-medium hover:text-[#00D2FF] transition-colors"
                     >
-                      {companyData.phone}
+                      {settings.phone}
                     </a>
                   </div>
                 </div>
@@ -303,7 +300,7 @@ export const Contact: React.FC<ContactProps> = ({
                   <div>
                     <p className="text-xs text-slate-400 font-semibold uppercase">Location</p>
                     <p className="text-white font-medium">
-                      {companyData.location}
+                      {settings.location}
                     </p>
                   </div>
                 </div>
@@ -316,7 +313,7 @@ export const Contact: React.FC<ContactProps> = ({
                   <div>
                     <p className="text-xs text-slate-400 font-semibold uppercase">Business Hours</p>
                     <p className="text-white font-medium">
-                      {companyData.businessHours}
+                      {settings.businessHours}
                     </p>
                   </div>
                 </div>
@@ -326,7 +323,7 @@ export const Contact: React.FC<ContactProps> = ({
               {/* Direct WhatsApp Quick Chat */}
               <div className="pt-4 border-t border-slate-800">
                 <a
-                  href={companyData.whatsappUrl}
+                  href={settings.whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 transition-all duration-200"

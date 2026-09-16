@@ -9,6 +9,8 @@ import inquiryRoutes from './routes/inquiryRoutes.js';
 import newsletterRoutes from './routes/newsletterRoutes.js';
 import portfolioRoutes from './routes/portfolioRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
+import pricingRoutes from './routes/pricingRoutes.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -99,6 +101,8 @@ app.use('/api/contact', inquiryRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/pricing', pricingRoutes);
 
 // Root greeting
 app.get('/', (req, res) => {
