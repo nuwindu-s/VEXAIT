@@ -197,6 +197,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
             <div className="flex items-center justify-center px-2 pt-2 text-xs text-slate-400">
               <a href={`mailto:${companyData.email}`} className="flex items-center gap-1.5 hover:text-white transition-colors">
                 <Mail className="w-3.5 h-3.5 text-blue-400" />
+                <span>{companyData.email}</span>
+              </a>
             </div>
           </div>
         </div>
