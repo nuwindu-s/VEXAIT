@@ -91,8 +91,8 @@ export const Services: React.FC<ServicesProps> = ({
           </p>
         </div>
 
-        {/* Small Compact Service Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Small Compact Service Cards Grid (Symmetrically Balanced) */}
+        <div className="flex flex-wrap justify-center gap-6">
           {servicesData.map((service) => {
             const pricing = getPricingForService(service.id);
 
@@ -100,7 +100,7 @@ export const Services: React.FC<ServicesProps> = ({
               <div
                 key={service.id}
                 onClick={() => handleCardClick(service)}
-                className="group relative flex flex-col justify-between rounded-2xl bg-white border border-slate-200/90 p-6 shadow-sm hover:shadow-xl hover:border-blue-400/80 transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+                className="group relative flex flex-col justify-between rounded-2xl bg-white border border-slate-200/90 p-6 shadow-sm hover:shadow-xl hover:border-blue-400/80 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
               >
                 <div>
                   {/* Top Row: Icon & Starting Price */}
