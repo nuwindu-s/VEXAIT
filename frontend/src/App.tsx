@@ -3,7 +3,6 @@ import { Navbar, TabType } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { Stats } from './components/Stats';
 import { Services } from './components/Services';
-import { Pricing } from './components/Pricing';
 import { About } from './components/About';
 import { Process } from './components/Process';
 import { Projects } from './components/Projects';
@@ -42,12 +41,17 @@ export const App: React.FC = () => {
       if (isCurrentAdmin) return;
 
       const hash = window.location.hash.replace('#', '').toLowerCase() as TabType;
-      const validTabs: TabType[] = ['home', 'about', 'services', 'pricing', 'projects', 'process', 'contact'];
+      const validTabs: TabType[] = ['home', 'about', 'services', 'projects', 'process', 'contact'];
       
-      // Handle legacy #portfolio redirects
+      // Handle legacy #portfolio or #pricing redirects
       if (window.location.hash === '#portfolio') {
         setActiveTab('projects');
         window.location.hash = 'projects';
+        return;
+      }
+      if (window.location.hash === '#pricing') {
+        setActiveTab('services');
+        window.location.hash = 'services';
         return;
       }
 
@@ -139,23 +143,10 @@ export const App: React.FC = () => {
             {/* Why Vexa IT / Trust Metrics */}
             <Stats />
 
-            {/* Services Overview */}
+            {/* Services Overview with Integrated Pricing */}
             <Services
               isStandalone={false}
-              onSelectService={(service) => switchTab('contact', service)}
-              onViewPackages={(serviceId) => {
-                setPricingServiceId(serviceId);
-                switchTab('pricing', undefined, undefined, undefined, serviceId);
-              }}
-            />
-
-            {/* Simple, Transparent Pricing Section */}
-            <Pricing
-              isStandalone={false}
-              selectedServiceId={pricingServiceId}
-              onSelectPackage={(service, pkg, price) =>
-                switchTab('contact', service, pkg, price)
-              }
+              onSelectService={(service, pkg, price) => switchTab('contact', service, pkg, price)}
             />
 
             {/* Why Businesses Choose Vexa IT */}
@@ -187,36 +178,13 @@ export const App: React.FC = () => {
         )}
 
         {/* =========================================================================
-            TAB 3: SERVICES
+            TAB 3: SERVICES & PRICING
            ========================================================================= */}
         {activeTab === 'services' && (
           <div className="animate-fadeIn">
             <Services
               isStandalone={true}
-              onSelectService={(service) => switchTab('contact', service)}
-              onViewPackages={(serviceId) => {
-                setPricingServiceId(serviceId);
-                switchTab('pricing', undefined, undefined, undefined, serviceId);
-              }}
-            />
-            <CTA
-              onStartProjectClick={() => switchTab('contact')}
-              onContactClick={() => switchTab('contact')}
-            />
-          </div>
-        )}
-
-        {/* =========================================================================
-            TAB 4: PRICING (Dedicated Tab)
-           ========================================================================= */}
-        {activeTab === 'pricing' && (
-          <div className="animate-fadeIn">
-            <Pricing
-              isStandalone={true}
-              selectedServiceId={pricingServiceId}
-              onSelectPackage={(service, pkg, price) =>
-                switchTab('contact', service, pkg, price)
-              }
+              onSelectService={(service, pkg, price) => switchTab('contact', service, pkg, price)}
             />
             <CTA
               onStartProjectClick={() => switchTab('contact')}

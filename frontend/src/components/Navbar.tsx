@@ -3,7 +3,7 @@ import { Logo } from './Logo';
 import { Menu, X, ArrowRight, Phone, Mail, Sparkles, Folder, CheckCircle } from 'lucide-react';
 import { companyData } from '../data/company';
 
-export type TabType = 'home' | 'about' | 'services' | 'pricing' | 'projects' | 'process' | 'contact';
+export type TabType = 'home' | 'about' | 'services' | 'projects' | 'process' | 'contact';
 
 interface NavbarProps {
   activeTab: TabType;
@@ -56,12 +56,6 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
       subTitle: 'Showcase',
       subDesc: 'Client portfolio',
       isDarkTab: true,
-    },
-    {
-      id: 'pricing',
-      tabName: 'Pricing',
-      subTitle: 'Packages',
-      subDesc: 'Affordable rates',
     },
     {
       id: 'process',
@@ -197,7 +191,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
             <div className="absolute top-[2px] inset-x-0 h-4 bg-gradient-to-b from-white/80 to-transparent pointer-events-none" />
 
             {/* Sub-navigation Items Grid */}
-            <div className="grid grid-cols-7 divide-x divide-slate-200/90 py-2.5 px-1 relative z-10">
+            <div className="grid grid-cols-6 divide-x divide-slate-200/90 py-2.5 px-1 relative z-10">
               {navItems.map((item) => {
                 const isActive = activeTab === item.id;
 
