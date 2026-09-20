@@ -277,7 +277,7 @@ export const Projects: React.FC<ProjectsProps> = ({ onSelectService, isStandalon
   };
 
   return (
-    <section id="projects" className={`${isStandalone ? 'pt-32 pb-24' : 'py-24'} bg-slate-50 relative overflow-hidden`}>
+    <section id="projects" className={`${isStandalone ? 'pt-36 pb-24 md:pt-44' : 'py-24'} bg-slate-50 relative overflow-hidden`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}

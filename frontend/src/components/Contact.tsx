@@ -205,7 +205,7 @@ export const Contact: React.FC<ContactProps> = ({
   ];
 
   return (
-    <section id="contact" className={`${isStandalone ? 'pt-32 pb-24' : 'py-24'} bg-white relative`}>
+    <section id="contact" className={`${isStandalone ? 'pt-36 pb-24 md:pt-44' : 'py-24'} bg-white relative`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}

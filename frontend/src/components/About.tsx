@@ -48,7 +48,7 @@ export const About: React.FC<AboutProps> = ({ isStandalone = false, onStartProje
   ];
 
   return (
-    <section id="about" className={`${isStandalone ? 'pt-32 pb-24' : 'py-24'} bg-white relative overflow-hidden`}>
+    <section id="about" className={`${isStandalone ? 'pt-36 pb-24 md:pt-44' : 'py-24'} bg-white relative overflow-hidden`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Main Grid */}

@@ -72,7 +72,7 @@ export const Pricing: React.FC<PricingProps> = ({
   };
 
   return (
-    <section id="pricing" className={`${isStandalone ? 'pt-32 pb-24' : 'py-24'} bg-slate-50 relative`}>
+    <section id="pricing" className={`${isStandalone ? 'pt-36 pb-24 md:pt-44' : 'py-24'} bg-slate-50 relative`}>
       {/* Background Decorative Accent */}
       <div className="absolute top-0 inset-x-0 h-48 bg-gradient-to-b from-slate-100/80 to-transparent pointer-events-none" />
 

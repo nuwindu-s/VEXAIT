@@ -16,7 +16,7 @@ export const Hero: React.FC<HeroProps> = ({
   return (
     <section
       id="home"
-      className="relative min-h-[92vh] pt-32 pb-20 md:pt-40 md:pb-28 bg-[#0A192F] text-white flex items-center overflow-hidden"
+      className="relative min-h-[92vh] pt-36 pb-20 md:pt-44 md:pb-28 bg-[#0A192F] text-white flex items-center overflow-hidden"
     >
       {/* Background Ambience & Geometric Tech Mesh */}
       <div className="absolute inset-0 bg-grid-pattern opacity-60 pointer-events-none" />
