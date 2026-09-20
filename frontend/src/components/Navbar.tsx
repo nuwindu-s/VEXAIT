@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Logo } from './Logo';
-import { Menu, X, ArrowRight, Phone, Mail, Sparkles, Folder, CheckCircle } from 'lucide-react';
+import { Menu, X, ArrowRight, Phone, Mail, Sparkles } from 'lucide-react';
 import { companyData } from '../data/company';
 
 export type TabType = 'home' | 'about' | 'services' | 'projects' | 'process' | 'contact';
@@ -8,12 +8,6 @@ export type TabType = 'home' | 'about' | 'services' | 'projects' | 'process' | '
 interface NavbarProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
-}
-
-interface NavItemConfig {
-  id: TabType;
-  tabName: string;
-  isDarkTab?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
@@ -29,33 +23,13 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems: NavItemConfig[] = [
-    {
-      id: 'home',
-      tabName: 'Home',
-    },
-    {
-      id: 'services',
-      tabName: 'Services',
-    },
-    {
-      id: 'about',
-      tabName: 'Company',
-    },
-    {
-      id: 'projects',
-      tabName: 'Gallery',
-      isDarkTab: true,
-    },
-    {
-      id: 'process',
-      tabName: 'Process',
-    },
-    {
-      id: 'contact',
-      tabName: 'Contact us',
-      isDarkTab: true,
-    },
+  const tabs: { id: TabType; name: string }[] = [
+    { id: 'home', name: 'Home' },
+    { id: 'about', name: 'About' },
+    { id: 'services', name: 'Services' },
+    { id: 'projects', name: 'Projects' },
+    { id: 'process', name: 'Process' },
+    { id: 'contact', name: 'Contact' },
   ];
 
   const handleTabSelect = (tabId: TabType) => {
@@ -69,8 +43,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-[#0A192F]/95 backdrop-blur-md shadow-xl shadow-black/30 border-b border-slate-800/80 py-2.5'
-          : 'bg-[#0A192F]/90 backdrop-blur-md border-b border-white/10 py-3'
+          ? 'bg-[#0A192F]/95 backdrop-blur-md shadow-xl shadow-black/30 border-b border-slate-800/80 py-3'
+          : 'bg-[#0A192F]/90 backdrop-blur-md border-b border-white/10 py-4'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -82,61 +56,53 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
             className="flex items-center group transition-transform hover:opacity-95 focus:outline-none text-left cursor-pointer shrink-0"
             aria-label="VEXA IT Homepage"
           >
-            <Logo variant="dark" size="sm" showTagline />
+            <Logo variant="dark" size="md" showTagline />
           </button>
 
-          {/* Desktop Skeuomorphic Folder Navigation Tabs Bar */}
+          {/* Desktop Navigation Dock */}
           <nav
-            className="hidden md:flex items-center gap-1.5 p-1 rounded-2xl bg-slate-950/70 border border-slate-800/90 shadow-inner backdrop-blur-md"
-            aria-label="Folder Navigation"
+            className="hidden md:flex items-center gap-1 p-1.5 rounded-2xl bg-slate-900/80 border border-slate-800/80 backdrop-blur-md shadow-inner"
+            aria-label="Main Navigation"
           >
-            {navItems.map((item) => {
-              const isActive = activeTab === item.id;
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.id;
 
               return (
                 <button
-                  key={item.id}
+                  key={tab.id}
                   type="button"
-                  onClick={() => handleTabSelect(item.id)}
-                  className={`relative group px-3.5 sm:px-4 lg:px-5 py-2 text-xs lg:text-[13px] font-bold tracking-wide transition-all duration-200 cursor-pointer rounded-xl border ${
+                  onClick={() => handleTabSelect(tab.id)}
+                  className={`relative px-4 py-2 text-xs lg:text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
                     isActive
-                      ? 'bg-gradient-to-b from-[#0A192F] via-[#102344] to-[#0A192F] text-white border-blue-500/50 shadow-md shadow-blue-500/15 scale-[1.02]'
-                      : 'bg-gradient-to-b from-[#ffffff] via-[#eef2f7] to-[#d8e2ee] text-slate-800 border-slate-300/90 hover:text-slate-950 hover:brightness-105 shadow-sm'
+                      ? 'text-white bg-gradient-to-r from-blue-600 to-[#0066FF] shadow-md shadow-blue-500/25 font-bold scale-[1.02]'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                   }`}
-                  style={{
-                    boxShadow: isActive
-                      ? 'inset 0 1px 1px rgba(0,210,255,0.4), 0 2px 8px rgba(0,0,0,0.3)'
-                      : 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.08)',
-                  }}
                 >
-                  <div className="flex items-center gap-1.5">
-                    <span>{item.tabName}</span>
-                  </div>
-
-                  {/* Active Tab Accent Top Light Line */}
+                  <span>{tab.name}</span>
                   {isActive && (
-                    <div className="absolute top-0 inset-x-2 h-[2px] bg-gradient-to-r from-transparent via-[#00D2FF] to-transparent rounded-full" />
+                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-3 h-0.5 bg-[#00D2FF] rounded-full shadow-[0_0_8px_#00D2FF]" />
                   )}
                 </button>
               );
             })}
           </nav>
 
-          {/* Quick Header Contact & CTA */}
+          {/* Desktop Right Header Actions */}
           <div className="hidden lg:flex items-center gap-4 text-xs shrink-0">
             <a
               href={`tel:${companyData.phone}`}
-              className="hidden xl:flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors"
             >
               <Phone className="w-3.5 h-3.5 text-[#00D2FF]" />
               <span className="font-semibold">{companyData.phone}</span>
             </a>
+            <div className="h-4 w-[1px] bg-slate-700" />
             <button
               type="button"
               onClick={() => handleTabSelect('contact')}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-[#0066FF] text-white font-bold text-xs shadow-md shadow-blue-500/20 hover:brightness-110 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-[#0066FF] text-white font-bold text-xs shadow-md shadow-blue-500/25 hover:from-blue-500 hover:to-blue-600 hover:shadow-blue-500/40 transition-all duration-200 transform hover:-translate-y-0.5 cursor-pointer"
             >
-              <span>Get a Quote</span>
+              <span>Start a Project</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -163,20 +129,20 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
         }`}
       >
         <div className="px-4 pt-3 pb-6 space-y-2">
-          {navItems.map((item) => {
-            const isActive = activeTab === item.id;
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
             return (
               <button
-                key={item.id}
+                key={tab.id}
                 type="button"
-                onClick={() => handleTabSelect(item.id)}
+                onClick={() => handleTabSelect(tab.id)}
                 className={`w-full flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-xl transition-all ${
                   isActive
-                    ? 'text-white bg-blue-600 shadow-md'
+                    ? 'text-white bg-blue-600 shadow-md font-bold'
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                <span>{item.tabName}</span>
+                <span>{tab.name}</span>
                 <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-white' : 'bg-slate-500'}`} />
               </button>
             );
