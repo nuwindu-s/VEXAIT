@@ -2597,7 +2597,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                     <option value="UI/UX Design">UI/UX Design</option>
                     <option value="E-Commerce Development">E-Commerce Development</option>
                     <option value="Social Media & Growth">Social Media & Growth</option>
-                    <option value="IT Consulting">IT Consulting</option>
                   </select>
                 </div>
               </div>

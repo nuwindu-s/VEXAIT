@@ -79,18 +79,4 @@ export const servicesData: ServiceItem[] = [
       "Comprehensive monthly performance analytics and actionable growth reports",
     ],
   },
-  {
-    id: "it-consulting",
-    title: "IT Consulting",
-    shortDesc: "Practical technology guidance to help businesses choose and implement the right solutions.",
-    description: "Strategic guidance from seasoned technology professionals to help you navigate vendor selections, modernize legacy systems, and invest in tech with confidence.",
-    iconName: "Compass",
-    tags: ["Architecture Advisory", "Cloud Migration", "Tech Stack Audit", "Roadmapping"],
-    features: [
-      "Tech stack evaluation and cost-benefit optimization audits",
-      "Cloud transition strategies (AWS, Azure, Google Cloud)",
-      "Cybersecurity best practices and risk reduction roadmaps",
-      "Technical scoping, timeline forecasting, and vendor vetting",
-    ],
-  },
 ];

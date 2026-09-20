@@ -258,14 +258,14 @@ export const Pricing: React.FC<PricingProps> = ({
         <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm mb-16">
           <div className="text-center mb-5">
             <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-              Explore Pricing Across All 6 Services
+              Explore Pricing Across All Services
             </h4>
             <p className="text-xs text-slate-500">
               Click any service below to view its complete package options
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {pricingData.map((s) => {
               const isCurrent = s.id === activeServiceId;
               return (

@@ -97,13 +97,13 @@ const defaultPricingList = [
     serviceTitle: 'Software Development',
     serviceSubtitle: 'Custom software systems engineered to streamline operations and scale your business.',
     iconName: 'Code',
-    startingPrice: 'Rs. 75,000+',
+    startingPrice: 'Rs. 45,000+',
     importantNote: 'Final price depends on project requirements.',
     packages: [
       {
         id: 'software-basic',
         name: 'Basic',
-        price: 'Rs. 75,000+',
+        price: 'Rs. 45,000+',
         isStartingFrom: true,
         suitableFor: 'Small business processes, internal utilities, and single-workflow automations.',
         features: [
@@ -118,7 +118,7 @@ const defaultPricingList = [
       {
         id: 'software-business',
         name: 'Business',
-        price: 'Rs. 150,000+',
+        price: 'Rs. 90,000+',
         isStartingFrom: true,
         popular: true,
         suitableFor: 'Medium businesses needing multi-user role management, admin dashboards, and custom reporting.',
@@ -136,7 +136,7 @@ const defaultPricingList = [
       {
         id: 'software-advanced',
         name: 'Advanced',
-        price: 'Rs. 300,000+',
+        price: 'Rs. 180,000+',
         isStartingFrom: true,
         suitableFor: 'Enterprises needing full-scale systems, automated pipelines, complex architectures, and ongoing SLAs.',
         features: [
@@ -312,55 +312,6 @@ const defaultPricingList = [
           'Audience engagement',
           'Facebook & Instagram management',
           'Monthly performance report',
-        ],
-      },
-    ],
-  },
-  {
-    serviceId: 'it-consulting',
-    serviceTitle: 'IT Consulting',
-    serviceSubtitle: 'Practical technology guidance to help businesses invest and scale with confidence.',
-    iconName: 'Compass',
-    startingPrice: 'Rs. 5,000',
-    packages: [
-      {
-        id: 'it-consultation',
-        name: 'Consultation',
-        price: 'Rs. 5,000',
-        suitableFor: 'Founders and teams seeking expert 1-on-1 technical discussion on architecture or requirements.',
-        features: [
-          '1-hour consultation',
-          'Technology discussion',
-          'Business requirement review',
-          'Initial recommendations',
-        ],
-      },
-      {
-        id: 'it-audit',
-        name: 'Business Audit',
-        price: 'Rs. 15,000',
-        popular: true,
-        suitableFor: 'Businesses wanting an in-depth audit of their software systems, infrastructure security, and efficiency.',
-        features: [
-          'Technology audit',
-          'Infrastructure review',
-          'Software review',
-          'Security considerations',
-          'Recommendations',
-        ],
-      },
-      {
-        id: 'it-plan',
-        name: 'Technology Plan',
-        price: 'Rs. 30,000+',
-        isStartingFrom: true,
-        suitableFor: 'Companies planning new product developments, cloud migrations, or long-term digital transformation roadmaps.',
-        features: [
-          'Detailed technology assessment',
-          'Solution architecture',
-          'Technology recommendations',
-          'Implementation roadmap',
-          'Business technology strategy',
         ],
       },
     ],

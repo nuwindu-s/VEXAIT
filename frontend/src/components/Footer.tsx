@@ -195,15 +195,6 @@ export const Footer: React.FC<FooterProps> = ({ onTabChange, onSelectService }) 
                   E-Commerce
                 </button>
               </li>
-              <li>
-                <button
-                  type="button"
-                  onClick={() => handleServiceClick('IT Consulting')}
-                  className="hover:text-white transition-colors text-left cursor-pointer"
-                >
-                  IT Consulting
-                </button>
-              </li>
             </ul>
           </div>
 
