@@ -266,7 +266,7 @@ export const Pricing: React.FC<PricingProps> = ({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {pricingData.map((s) => {
+            {pricingList.map((s) => {
               const isCurrent = s.id === activeServiceId;
               return (
                 <button
