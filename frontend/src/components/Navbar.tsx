@@ -85,37 +85,35 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
             <Logo variant="dark" size="sm" showTagline />
           </button>
 
-          {/* Desktop Skeuomorphic Folder Navigation Tabs */}
-          <nav className="hidden md:flex items-end gap-1.5 px-2 relative z-10" aria-label="Folder Navigation">
+          {/* Desktop Skeuomorphic Folder Navigation Tabs Bar */}
+          <nav
+            className="hidden md:flex items-center gap-1.5 p-1 rounded-2xl bg-slate-950/70 border border-slate-800/90 shadow-inner backdrop-blur-md"
+            aria-label="Folder Navigation"
+          >
             {navItems.map((item) => {
               const isActive = activeTab === item.id;
-              const isDark = isActive || item.isDarkTab;
 
               return (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => handleTabSelect(item.id)}
-                  className={`relative group px-4 sm:px-5 py-2 text-xs sm:text-[13px] font-bold tracking-wide transition-all duration-150 cursor-pointer rounded-t-xl sm:rounded-t-2xl border-t border-l border-r ${
+                  className={`relative group px-3.5 sm:px-4 lg:px-5 py-2 text-xs lg:text-[13px] font-bold tracking-wide transition-all duration-200 cursor-pointer rounded-xl border ${
                     isActive
-                      ? 'bg-gradient-to-b from-[#0A192F] via-[#0F2242] to-[#0A192F] text-white border-slate-600 shadow-[0_-2px_10px_rgba(0,0,0,0.3)] z-20 scale-[1.03] transform -translate-y-0.5'
-                      : isDark
-                      ? 'bg-gradient-to-b from-[#162744] via-[#102038] to-[#0c182a] text-slate-200 border-slate-700/80 hover:text-white hover:brightness-110 shadow-sm'
-                      : 'bg-gradient-to-b from-[#ffffff] via-[#e8eef6] to-[#d6e0ec] text-slate-700 border-slate-300 hover:text-slate-900 hover:brightness-105 shadow-sm'
+                      ? 'bg-gradient-to-b from-[#0A192F] via-[#102344] to-[#0A192F] text-white border-blue-500/50 shadow-md shadow-blue-500/15 scale-[1.02]'
+                      : 'bg-gradient-to-b from-[#ffffff] via-[#eef2f7] to-[#d8e2ee] text-slate-800 border-slate-300/90 hover:text-slate-950 hover:brightness-105 shadow-sm'
                   }`}
                   style={{
                     boxShadow: isActive
-                      ? 'inset 0 1px 1px rgba(255,255,255,0.25), 0 -3px 8px rgba(0,0,0,0.3)'
-                      : isDark
-                      ? 'inset 0 1px 0 rgba(255,255,255,0.15)'
-                      : 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                      ? 'inset 0 1px 1px rgba(0,210,255,0.4), 0 2px 8px rgba(0,0,0,0.3)'
+                      : 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.08)',
                   }}
                 >
                   <div className="flex items-center gap-1.5">
                     <span>{item.tabName}</span>
                   </div>
 
-                  {/* Active Tab Top Light Line */}
+                  {/* Active Tab Accent Top Light Line */}
                   {isActive && (
                     <div className="absolute top-0 inset-x-2 h-[2px] bg-gradient-to-r from-transparent via-[#00D2FF] to-transparent rounded-full" />
                   )}
