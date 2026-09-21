@@ -31,7 +31,12 @@ Copy `.env.example` in `backend/`:
 ```bash
 cp backend/.env.example backend/.env
 ```
-Ensure `MONGO_URI` is configured.
+- Ensure `MONGO_URI` is configured.
+- To receive inquiry emails directly at **`vexa.it2026@gmail.com`**, configure your 16-character Google App Password in `SMTP_PASS`:
+  1. Enable 2-Step Verification on `vexa.it2026@gmail.com`
+  2. Visit [Google App Passwords](https://myaccount.google.com/apppasswords)
+  3. Create an app password for "Mail" and set `SMTP_PASS=your_16_char_password` in `backend/.env`.
+
 
 ### 4. Run Locally
 

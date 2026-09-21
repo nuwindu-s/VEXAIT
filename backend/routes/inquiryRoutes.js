@@ -1,11 +1,12 @@
 import express from 'express';
 import { Inquiry } from '../models/Inquiry.js';
+import { sendInquiryNotification, sendClientConfirmation } from '../services/emailService.js';
 
 const router = express.Router();
 
 /**
  * @route   POST /api/inquiries (or /api/contact)
- * @desc    Submit a new contact / project inquiry
+ * @desc    Submit a new contact / project inquiry and email vexa.it2026@gmail.com
  * @access  Public
  */
 router.post('/', async (req, res) => {
@@ -48,7 +49,17 @@ router.post('/', async (req, res) => {
       userAgent: String(userAgent),
     });
 
-    console.log(`📩 New Inquiry Received from ${newInquiry.name} (${newInquiry.email}) for service: ${newInquiry.service}`);
+    console.log(`📩 New Inquiry Saved: ${newInquiry.name} (${newInquiry.email}) - ${newInquiry.service}`);
+
+    // Send email notification to vexa.it2026@gmail.com (asynchronous, non-blocking for high responsiveness)
+    sendInquiryNotification(newInquiry).catch((err) => {
+      console.error('Background Email Dispatch Error:', err);
+    });
+
+    // Optionally send client confirmation receipt
+    sendClientConfirmation(newInquiry).catch((err) => {
+      console.warn('Background Client Receipt Dispatch Error:', err);
+    });
 
     return res.status(201).json({
       success: true,
@@ -66,6 +77,34 @@ router.post('/', async (req, res) => {
       success: false,
       error: 'Server error while processing your inquiry. Please try again later.',
     });
+  }
+});
+
+/**
+ * @route   POST /api/inquiries/test-email
+ * @desc    Send a test inquiry email to vexa.it2026@gmail.com
+ * @access  Public / Admin
+ */
+router.post('/test-email', async (req, res) => {
+  try {
+    const testInquiry = {
+      name: 'VEXA Test Lead',
+      email: 'vexa.it2026@gmail.com',
+      phone: '+94 71 269 6668',
+      company: 'VEXA IT Systems',
+      service: 'Custom Software Development',
+      details: 'This is an automated test inquiry to verify email delivery to vexa.it2026@gmail.com.',
+      createdAt: new Date(),
+    };
+
+    const result = await sendInquiryNotification(testInquiry);
+    return res.status(200).json({
+      success: result.success,
+      details: result,
+      target: process.env.ADMIN_EMAIL || process.env.EMAIL_TO || 'vexa.it2026@gmail.com',
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
   }
 });
 
