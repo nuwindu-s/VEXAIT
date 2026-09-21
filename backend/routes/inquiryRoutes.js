@@ -51,19 +51,24 @@ router.post('/', async (req, res) => {
 
     console.log(`📩 New Inquiry Saved: ${newInquiry.name} (${newInquiry.email}) - ${newInquiry.service}`);
 
-    // Send email notification to vexa.it2026@gmail.com (asynchronous, non-blocking for high responsiveness)
-    sendInquiryNotification(newInquiry).catch((err) => {
-      console.error('Background Email Dispatch Error:', err);
-    });
-
-    // Optionally send client confirmation receipt
-    sendClientConfirmation(newInquiry).catch((err) => {
-      console.warn('Background Client Receipt Dispatch Error:', err);
-    });
+    // Send email notification to vexa.it2026@gmail.com and client receipt
+    let emailResult = { success: false };
+    try {
+      const [adminResult] = await Promise.allSettled([
+        sendInquiryNotification(newInquiry),
+        sendClientConfirmation(newInquiry),
+      ]);
+      if (adminResult.status === 'fulfilled') {
+        emailResult = adminResult.value;
+      }
+    } catch (emailErr) {
+      console.error('Email Dispatch Warning:', emailErr);
+    }
 
     return res.status(201).json({
       success: true,
       message: 'Thank you! Your inquiry has been received. Our team will contact you shortly.',
+      emailSent: emailResult.success,
       data: {
         id: newInquiry._id,
         name: newInquiry.name,

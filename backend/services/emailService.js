@@ -5,17 +5,30 @@ import nodemailer from 'nodemailer';
  * Supports Gmail (default) or custom SMTP credentials via environment variables.
  */
 export const getTransporter = () => {
-  const user = process.env.SMTP_USER || process.env.EMAIL_USER || 'vexa.it2026@gmail.com';
-  const pass = process.env.SMTP_PASS || process.env.EMAIL_PASS || process.env.GMAIL_APP_PASSWORD;
+  const user = (process.env.SMTP_USER || process.env.EMAIL_USER || 'vexa.it2026@gmail.com').trim();
+  const rawPass = process.env.SMTP_PASS || process.env.EMAIL_PASS || process.env.GMAIL_APP_PASSWORD;
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
   const port = parseInt(process.env.SMTP_PORT || '465', 10);
   const secure = process.env.SMTP_SECURE === 'false' ? false : port === 465;
 
-  if (!pass) {
+  if (!rawPass || !rawPass.trim()) {
     console.warn(
-      '⚠️ [EmailService] SMTP password (SMTP_PASS / EMAIL_PASS / GMAIL_APP_PASSWORD) not configured in .env. Email notifications will be simulated.'
+      '⚠️ [EmailService] SMTP password (SMTP_PASS / EMAIL_PASS / GMAIL_APP_PASSWORD) not configured in environment variables.'
     );
     return null;
+  }
+
+  const pass = rawPass.trim().replace(/\s+/g, '');
+
+  // If using standard Gmail, nodemailer service: 'gmail' is the most robust across serverless and node
+  if (host.includes('gmail.com') || user.endsWith('@gmail.com')) {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user,
+        pass,
+      },
+    });
   }
 
   return nodemailer.createTransport({
