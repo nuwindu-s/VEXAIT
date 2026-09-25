@@ -171,7 +171,9 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
               return (
                 <button
                   key={idx}
-                  ref={(el) => (thumbnailRefs.current[idx] = el)}
+                  ref={(el) => {
+                    thumbnailRefs.current[idx] = el;
+                  }}
                   type="button"
                   onClick={() => setCurrentIndex(idx)}
                   className={`relative rounded-lg overflow-hidden border-2 transition-all duration-200 cursor-pointer h-12 w-20 sm:h-14 sm:w-24 shrink-0 ${

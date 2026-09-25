@@ -311,7 +311,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {project.deliverables.map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-700 bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs">
+                  <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-700 bg-white p-3 rounded-xl border border-slate-200/80 shadow-sm">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                     <span className="font-medium leading-snug">{item}</span>
                   </div>
