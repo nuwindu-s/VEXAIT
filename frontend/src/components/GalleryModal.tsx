@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight, Image as ImageIcon, Maximize2, Minimize2 } from 'lucide-react';
 
 export interface GalleryImage {
@@ -24,6 +24,7 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState<number>(initialIndex);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -36,6 +37,16 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
       document.body.style.overflow = '';
     };
   }, [isOpen, initialIndex]);
+
+  useEffect(() => {
+    if (isOpen && thumbnailRefs.current[currentIndex]) {
+      thumbnailRefs.current[currentIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
+  }, [currentIndex, isOpen]);
 
   const handlePrev = useCallback(() => {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -59,7 +70,7 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
 
   if (!isOpen || images.length === 0) return null;
 
-  const currentImage = images[currentIndex];
+  const currentImage = images[currentIndex] || images[0];
 
   return (
     <div
@@ -73,7 +84,7 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-[#070B14]/90 border-b border-slate-800/80">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-[#070B14]/90 border-b border-slate-800/80 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400">
               <ImageIcon className="w-4 h-4" />
@@ -137,7 +148,7 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
         </div>
 
         {/* Image Caption and Metadata */}
-        <div className="px-4 sm:px-6 py-2.5 bg-[#090E1A] border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="px-4 sm:px-6 py-2.5 bg-[#090E1A] border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0">
           <div className="space-y-0.5">
             <h4 className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
@@ -153,13 +164,14 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
         </div>
 
         {/* Thumbnails Carousel Bar */}
-        <div className="p-3 sm:p-4 bg-[#060911] border-t border-slate-800/60 overflow-x-auto">
-          <div className="flex items-center gap-2.5 sm:gap-3 min-w-max mx-auto justify-center">
+        <div className="p-3 sm:p-4 bg-[#060911] border-t border-slate-800/60 overflow-x-auto shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 w-max min-w-full px-2 justify-start sm:justify-center">
             {images.map((img, idx) => {
               const isSelected = idx === currentIndex;
               return (
                 <button
                   key={idx}
+                  ref={(el) => (thumbnailRefs.current[idx] = el)}
                   type="button"
                   onClick={() => setCurrentIndex(idx)}
                   className={`relative rounded-lg overflow-hidden border-2 transition-all duration-200 cursor-pointer h-12 w-20 sm:h-14 sm:w-24 shrink-0 ${
@@ -173,6 +185,7 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
                     src={img.url}
                     alt={img.title}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                   <div className="absolute bottom-0 inset-x-0 bg-black/70 text-[9px] text-center font-mono py-0.5 text-slate-300">
                     {idx + 1}

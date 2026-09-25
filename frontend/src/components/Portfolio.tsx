@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { portfolioData, ProjectItem } from '../data/portfolio';
 import { ProjectModal } from './ProjectModal';
+import { GalleryModal } from './GalleryModal';
 import { ExternalLink, Layers, ArrowRight, Laptop, Smartphone, LayoutDashboard } from 'lucide-react';
 
 interface PortfolioProps {
@@ -10,6 +11,23 @@ interface PortfolioProps {
 export const Portfolio: React.FC<PortfolioProps> = ({ onSelectService }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [activeModalProject, setActiveModalProject] = useState<ProjectItem | null>(null);
+  const [galleryState, setGalleryState] = useState<{
+    isOpen: boolean;
+    project: ProjectItem | null;
+    initialIndex: number;
+  }>({
+    isOpen: false,
+    project: null,
+    initialIndex: 0,
+  });
+
+  const openGallery = (project: ProjectItem, index = 0) => {
+    setGalleryState({
+      isOpen: true,
+      project,
+      initialIndex: index,
+    });
+  };
 
   const categories = ['All', 'Web', 'Software', 'Mobile', 'E-Commerce'];
 
@@ -221,6 +239,16 @@ export const Portfolio: React.FC<PortfolioProps> = ({ onSelectService }) => {
             contact.scrollIntoView({ behavior: 'smooth' });
           }
         }}
+        onOpenGallery={(project, index) => openGallery(project, index)}
+      />
+
+      {/* Fullscreen Interactive Screenshot Gallery Modal */}
+      <GalleryModal
+        isOpen={galleryState.isOpen}
+        onClose={() => setGalleryState({ ...galleryState, isOpen: false })}
+        projectName={galleryState.project?.name || ''}
+        images={galleryState.project?.galleryImages || []}
+        initialIndex={galleryState.initialIndex}
       />
     </section>
   );
