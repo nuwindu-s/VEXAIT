@@ -12,6 +12,7 @@ import {
   Zap,
   Image as ImageIcon,
 } from 'lucide-react';
+import { formatCaseStudyHtml } from '../utils/formatHtml';
 
 interface ProjectModalProps {
   project: ProjectItem | null;
@@ -196,11 +197,14 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
           {/* Project Overview & Architecture */}
           <div className="space-y-2 pt-2">
             <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-              Architecture Overview
+              Architecture Overview & Case Study
             </h4>
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              {project.fullDesc}
-            </p>
+            <div
+              className="case-study-html text-xs sm:text-sm text-slate-600 leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: formatCaseStudyHtml(project.fullDesc),
+              }}
+            />
           </div>
 
           {/* Key Deliverables */}

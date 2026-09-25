@@ -55,6 +55,7 @@ import {
 import { ProjectItem, portfolioData } from '../data/portfolio';
 import { useSite, SiteSettingsData } from '../context/SiteContext';
 import { ServicePricing, PricingPackage, pricingData as defaultPricingData } from '../data/pricingData';
+import { formatCaseStudyHtml, convertMarkdownToHtml } from '../utils/formatHtml';
 
 interface AdminPanelProps {
   onExit: () => void;
@@ -94,6 +95,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
   const [isSavingProject, setIsSavingProject] = useState(false);
+  const [projectDescTab, setProjectDescTab] = useState<'write' | 'preview'>('write');
 
   // Inquiries State
   const [inquiries, setInquiries] = useState<any[]>([]);
@@ -335,6 +337,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
   const handleOpenCreateProject = () => {
     setEditingProject(null);
     setProjectForm(initialProjectForm);
+    setProjectDescTab('write');
     setIsProjectModalOpen(true);
   };
 
@@ -361,7 +364,38 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
       url: proj.url || '',
       galleryImages: proj.galleryImages ? [...proj.galleryImages] : [],
     });
+    setProjectDescTab('write');
     setIsProjectModalOpen(true);
+  };
+
+  // Insert HTML tag into project fullDesc editor
+  const handleInsertHtmlTag = (openTag: string, closeTag: string = '') => {
+    const textarea = document.getElementById('project-fullDesc-input') as HTMLTextAreaElement | null;
+    if (!textarea) {
+      setProjectForm((prev) => ({
+        ...prev,
+        fullDesc: (prev.fullDesc || '') + openTag + (closeTag ? 'Sample text' + closeTag : ''),
+      }));
+      return;
+    }
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentVal = projectForm.fullDesc || '';
+    const selected = currentVal.substring(start, end) || 'text';
+    const replacement = `${openTag}${selected}${closeTag}`;
+    const newVal = currentVal.substring(0, start) + replacement + currentVal.substring(end);
+    setProjectForm((prev) => ({ ...prev, fullDesc: newVal }));
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + openTag.length, start + openTag.length + selected.length);
+    }, 40);
+  };
+
+  // Convert markdown to HTML in project fullDesc
+  const handleConvertMarkdownToHtml = () => {
+    if (!projectForm.fullDesc) return;
+    const converted = convertMarkdownToHtml(projectForm.fullDesc);
+    setProjectForm((prev) => ({ ...prev, fullDesc: converted }));
   };
 
   // Add Photo URL to Project Form
@@ -2351,17 +2385,175 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Full Case Study / Detailed Description
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={projectForm.fullDesc}
-                    onChange={(e) => setProjectForm({ ...projectForm, fullDesc: e.target.value })}
-                    placeholder="Detailed overview shown in modal popup..."
-                    className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
+                {/* Full Case Study / Detailed Description (HTML) */}
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <label className="block text-xs font-semibold text-slate-300">
+                        Full Case Study / Detailed Description
+                      </label>
+                      <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-500/20 text-blue-400 rounded-md border border-blue-500/30 tracking-wide">
+                        HTML FORMAT
+                      </span>
+                    </div>
+
+                    {/* Editor / Preview Switcher */}
+                    <div className="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => setProjectDescTab('write')}
+                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold transition-all cursor-pointer ${
+                          projectDescTab === 'write'
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        <Code className="w-3 h-3" />
+                        <span>Code Editor</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setProjectDescTab('preview')}
+                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold transition-all cursor-pointer ${
+                          projectDescTab === 'preview'
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>Live Preview</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {projectDescTab === 'write' ? (
+                    <div className="space-y-2">
+                      {/* HTML Tag Quick Toolbar */}
+                      <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-950 rounded-xl border border-slate-800 text-xs">
+                        <span className="text-[10px] font-semibold text-slate-500 px-1 uppercase tracking-wider">
+                          Tags:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertHtmlTag('<h3>', '</h3>')}
+                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-semibold text-[11px] transition-colors cursor-pointer"
+                          title="Insert Heading 3"
+                        >
+                          &lt;h3&gt;
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertHtmlTag('<h4>', '</h4>')}
+                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-semibold text-[11px] transition-colors cursor-pointer"
+                          title="Insert Heading 4"
+                        >
+                          &lt;h4&gt;
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertHtmlTag('<p>', '</p>')}
+                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-semibold text-[11px] transition-colors cursor-pointer"
+                          title="Insert Paragraph"
+                        >
+                          &lt;p&gt;
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertHtmlTag('<strong>', '</strong>')}
+                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-bold text-[11px] transition-colors cursor-pointer"
+                          title="Bold text"
+                        >
+                          &lt;b&gt;
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertHtmlTag('<em>', '</em>')}
+                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded italic text-[11px] transition-colors cursor-pointer"
+                          title="Italic text"
+                        >
+                          &lt;i&gt;
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertHtmlTag('<ul>\n  <li>', '</li>\n  <li>Next item</li>\n</ul>')}
+                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-medium text-[11px] transition-colors cursor-pointer"
+                          title="Insert Unordered List"
+                        >
+                          &lt;ul&gt; List
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertHtmlTag('<code>', '</code>')}
+                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-blue-300 rounded font-mono text-[11px] transition-colors cursor-pointer"
+                          title="Insert Inline Code"
+                        >
+                          &lt;code&gt;
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertHtmlTag('<blockquote>', '</blockquote>')}
+                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px] transition-colors cursor-pointer"
+                          title="Insert Quote Callout"
+                        >
+                          Quote
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertHtmlTag('<br/>')}
+                          className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono text-[10px] transition-colors cursor-pointer"
+                          title="Insert Line Break"
+                        >
+                          &lt;br/&gt;
+                        </button>
+
+                        <div className="ml-auto">
+                          <button
+                            type="button"
+                            onClick={handleConvertMarkdownToHtml}
+                            className="flex items-center gap-1 px-2.5 py-0.5 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/40 rounded font-semibold text-[11px] transition-all cursor-pointer"
+                            title="Convert markdown headers (###) and bullets to HTML tags"
+                          >
+                            <Sparkles className="w-3 h-3 text-indigo-300" />
+                            <span>Format MD → HTML</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Monospace HTML Textarea */}
+                      <textarea
+                        id="project-fullDesc-input"
+                        rows={7}
+                        value={projectForm.fullDesc}
+                        onChange={(e) => setProjectForm({ ...projectForm, fullDesc: e.target.value })}
+                        placeholder="<h3>Overview &amp; Challenge</h3>&#10;<p>Describe the client challenge, custom requirements, and technical solution here...</p>&#10;&#10;<h3>Key Architectural Highlights</h3>&#10;<ul>&#10;  <li>Offline local storage database</li>&#10;  <li>Automated invoice &amp; report generation</li>&#10;</ul>"
+                        className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono leading-relaxed resize-y"
+                      />
+                      <p className="text-[11px] text-slate-400">
+                        Supports HTML tags like <code className="text-blue-400">&lt;h3&gt;</code>, <code className="text-blue-400">&lt;p&gt;</code>, <code className="text-blue-400">&lt;strong&gt;</code>, <code className="text-blue-400">&lt;ul&gt;&lt;li&gt;</code>, <code className="text-blue-400">&lt;blockquote&gt;</code>. Click <strong>Live Preview</strong> above to test.
+                      </p>
+                    </div>
+                  ) : (
+                    /* Live Preview Mode */
+                    <div className="space-y-2">
+                      <div className="w-full min-h-[180px] max-h-[320px] overflow-y-auto p-4 bg-slate-950 border border-slate-800 rounded-xl">
+                        {projectForm.fullDesc && projectForm.fullDesc.trim() ? (
+                          <div
+                            className="case-study-html-dark"
+                            dangerouslySetInnerHTML={{
+                              __html: formatCaseStudyHtml(projectForm.fullDesc),
+                            }}
+                          />
+                        ) : (
+                          <div className="text-xs text-slate-500 italic py-6 text-center">
+                            No description entered yet. Switch to Code Editor to enter HTML content.
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-400">
+                        This is a live preview of how the Case Study / Detailed Description will render in the visitor modal.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
