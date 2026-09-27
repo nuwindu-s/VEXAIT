@@ -1276,18 +1276,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                   </div>
                 </button>
 
-                <button
-                  onClick={() => setActiveTab('billing')}
-                  className="p-4 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl text-left transition-all cursor-pointer flex items-center gap-3"
-                >
-                  <div className="p-2.5 bg-blue-600/20 text-blue-400 rounded-lg">
-                    <Receipt className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-white">Create Quote / Bill</div>
-                    <div className="text-[11px] text-slate-400">Custom prices & discounts</div>
-                  </div>
-                </button>
 
                 <button
                   onClick={() => setActiveTab('pricing')}
