@@ -51,13 +51,11 @@ import {
   Calendar,
   Save,
   RotateCcw,
-  Receipt,
 } from 'lucide-react';
 import { ProjectItem, portfolioData } from '../data/portfolio';
 import { useSite, SiteSettingsData } from '../context/SiteContext';
 import { ServicePricing, PricingPackage, pricingData as defaultPricingData } from '../data/pricingData';
 import { formatCaseStudyHtml, convertMarkdownToHtml } from '../utils/formatHtml';
-import { InvoiceGenerator } from './InvoiceGenerator';
 
 interface AdminPanelProps {
   onExit: () => void;
@@ -96,7 +94,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'projects' | 'inquiries' | 'billing' | 'pricing' | 'settings' | 'newsletter' | 'system'
+    'overview' | 'projects' | 'inquiries' | 'pricing' | 'settings' | 'newsletter' | 'system'
   >('overview');
 
   // Projects State
@@ -1108,17 +1106,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
             )}
           </button>
 
-          <button
-            onClick={() => setActiveTab('billing')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'billing'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-            }`}
-          >
-            <Receipt className="w-4 h-4" />
-            <span>Quotes & Invoicing</span>
-          </button>
 
           <button
             onClick={() => setActiveTab('pricing')}
@@ -1974,17 +1961,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
           </div>
         )}
 
-        {/* =========================================================================
-            TAB: QUOTATIONS & INVOICES / BILLING MANAGER
-           ========================================================================= */}
-        {activeTab === 'billing' && (
-          <div className="animate-fadeIn">
-            <InvoiceGenerator
-              inquiries={inquiries}
-              onNotify={(msg, type) => showToast(msg, type)}
-            />
-          </div>
-        )}
 
         {/* =========================================================================
             TAB 5: SITE SETTINGS, HERO & CONTACT CONTROL
