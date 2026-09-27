@@ -260,7 +260,7 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({
                           <button
                             onClick={() => onConvertToInvoice(doc as Quotation)}
                             className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 transition-colors cursor-pointer"
-                            title="Convert Quote to Official Tax Invoice"
+                            title="Convert Quote to Invoice"
                           >
                             <ArrowRight className="w-4 h-4" />
                           </button>

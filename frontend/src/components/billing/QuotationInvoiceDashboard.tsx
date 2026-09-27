@@ -599,7 +599,7 @@ export const QuotationInvoiceDashboard: React.FC<QuotationInvoiceDashboardProps>
             }`}
           >
             <Receipt className="w-4 h-4" />
-            <span>Tax Invoices</span>
+            <span>Invoices</span>
             <span className="ml-1 text-[10px] px-1.5 py-0.2 rounded-full bg-slate-950/60 border border-white/10 font-mono">
               {invoices.length}
             </span>
@@ -648,7 +648,7 @@ export const QuotationInvoiceDashboard: React.FC<QuotationInvoiceDashboardProps>
             className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer"
           >
             <Receipt className="w-4 h-4" />
-            <span>New Tax Invoice</span>
+            <span>New Invoice</span>
           </button>
         </div>
       </div>

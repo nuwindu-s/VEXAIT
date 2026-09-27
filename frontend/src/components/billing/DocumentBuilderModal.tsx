@@ -343,7 +343,7 @@ export const DocumentBuilderModal: React.FC<DocumentBuilderModalProps> = ({
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <span>
                   {mode === 'edit' ? 'Edit' : 'Create'}{' '}
-                  {isInvoice ? 'Official Tax Invoice' : 'Commercial Quotation'}
+                  {isInvoice ? 'Invoice' : 'Commercial Quotation'}
                 </span>
                 <span className="text-xs font-mono font-normal text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
                   {docNumber}
