@@ -99,16 +99,15 @@ Account Name: VEXA IT SOLUTIONS (PVT) LTD
 Account Number: 8009214782
 Branch: Colombo Fort (Branch Code: 045)
 SWIFT / BIC: CCEYLKLX
-Currency: Sri Lankan Rupees (LKR)
 Payment Reference: Please quote the Quotation or Invoice reference number`;
 
 const DEFAULT_TERMS_QUOTATION = `1. Quotation Validity: This commercial quotation remains valid for 30 calendar days from the date of issue.
 2. Payment Milestone Schedule:
-   • 50% Advance deposit upon quotation acceptance and project sign-off to initiate development.
+   • 50% Advance deposit upon quotation acceptance and project sign-off to initiate engineering.
    • 25% Interim milestone payment upon Beta / UAT preview approval.
-   • 25% Final settlement upon live production deployment, DNS handover, and source access.
-3. Warranty & Support: Includes 60 days of complimentary post-deployment technical maintenance and bug fixes.
-4. Intellectual Property: Full ownership and source code IP transfer to the client upon final settlement.`;
+   • 25% Final settlement upon live production deployment, DNS handover, and source code transfer.
+3. Warranty & SLA Support: Includes 60 days of complimentary post-deployment technical maintenance and bug fixes.
+4. Intellectual Property: Complete source code ownership and intellectual property transfer to the client upon final settlement.`;
 
 const DEFAULT_TERMS_INVOICE = `1. Payment Due: Payment is required within 14 calendar days from the date of invoice issue.
 2. Settlement: Direct electronic bank transfer (CEFT / SLIPS) or online corporate payment gateway.
@@ -166,6 +165,62 @@ function numberToWordsLKR(amount: number): string {
   return `Sri Lankan Rupees ${words} Only`;
 }
 
+// Corporate VEXA IT Logo Component
+export const VexaCorporateLogo: React.FC<{ className?: string; darkTheme?: boolean }> = ({
+  className = '',
+  darkTheme = false,
+}) => {
+  const [imageLoaded, setImageLoaded] = useState(true);
+
+  return (
+    <div className={`flex items-center gap-3.5 select-none ${className}`}>
+      {imageLoaded ? (
+        <img
+          src="/logo.jpg"
+          alt="VEXA IT Logo"
+          onError={() => setImageLoaded(false)}
+          className="w-14 h-14 object-contain rounded-lg shrink-0 border border-slate-200/80 shadow-sm bg-white p-0.5"
+        />
+      ) : (
+        /* High-Resolution Geometric V Vector Fallback */
+        <div className="w-14 h-14 relative shrink-0 flex items-center justify-center bg-[#070E1E] rounded-xl p-2 border border-blue-500/30 shadow-md">
+          <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M18 20 L38 20 L50 68 L62 20 L82 20 L58 84 L42 84 Z"
+              fill="#0066FF"
+            />
+            <path
+              d="M34 20 L54 68 L46 84 L26 36 Z"
+              fill="#00D2FF"
+            />
+            <path
+              d="M50 20 L70 20 L58 56 L46 28 Z"
+              fill="#0A192F"
+            />
+          </svg>
+        </div>
+      )}
+
+      <div className="flex flex-col">
+        <span
+          className={`text-2xl font-black tracking-wider uppercase font-sans leading-none ${
+            darkTheme ? 'text-white' : 'text-[#070E1E]'
+          }`}
+        >
+          VEXA <span className="text-[#0066FF]">IT</span>
+        </span>
+        <span
+          className={`text-[9px] font-bold tracking-widest uppercase mt-1 ${
+            darkTheme ? 'text-slate-400' : 'text-slate-500'
+          }`}
+        >
+          Solutions (Pvt) Ltd
+        </span>
+      </div>
+    </div>
+  );
+};
+
 export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
   inquiries = [],
   onNotify,
@@ -207,27 +262,27 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
         items: [
           {
             id: 'item-1',
-            description: 'Custom Corporate Web Application & Client Cargo Tracking Portal',
+            description: 'Custom Corporate Web Application & Real-Time Cargo Tracking System',
             category: 'Web Development',
-            scopeNotes: 'Full-stack responsive web system, real-time shipment status, multi-role auth, and customer dashboard.',
+            scopeNotes: 'Full-stack responsive web platform, customer tracking portal, multi-role auth, automated status alerts, and high-performance cloud database.',
             quantity: 1,
             unit: 'project',
             unitPrice: 185000,
           },
           {
             id: 'item-2',
-            description: 'Executive UI/UX Interactive Design System & Brand Guidelines (Figma)',
+            description: 'Executive UI/UX Interactive Design System & Brand Asset Kit (Figma)',
             category: 'UI/UX Design',
-            scopeNotes: 'Complete wireframes, interactive high-fidelity clickable prototype, mobile & desktop layouts.',
+            scopeNotes: 'High-fidelity wireframes, interactive mobile & desktop clickable prototypes, component library, and design tokens.',
             quantity: 1,
             unit: 'package',
             unitPrice: 65000,
           },
           {
             id: 'item-3',
-            description: 'Automated WhatsApp API & SMS Notification System',
+            description: 'Automated WhatsApp Business API & SMS Gateway Integration',
             category: 'Software Integration',
-            scopeNotes: 'Instant alert triggers for dispatch, milestone tracking, and dynamic PDF invoice generator.',
+            scopeNotes: 'Instant alert triggers for dispatch, delivery updates, and automated PDF invoice generation.',
             quantity: 1,
             unit: 'integration',
             unitPrice: 45000,
@@ -239,11 +294,11 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
         taxLabel: 'VAT / SSCL',
         extraFee: 0,
         extraFeeLabel: 'Cloud Deployment Fee',
-        notes: 'Includes complete source code repository, SSL certificate setup, and 60 days dedicated technical SLA.',
+        notes: 'Includes full source code repository, SSL certificate setup, and 60 days dedicated technical maintenance SLA.',
         paymentTerms: DEFAULT_TERMS_QUOTATION,
         bankDetails: DEFAULT_BANK_DETAILS,
-        preparedBy: 'Nuwindu S. (Lead Architect)',
-        authorizedBy: 'VEXA IT Management Board',
+        preparedBy: 'Nuwindu S. (Lead Systems Architect)',
+        authorizedBy: 'Director of Technology, VEXA IT',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -541,7 +596,7 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
     notify(`Added ${pkgName} (Rs. ${numPrice.toLocaleString()}) to items`);
   };
 
-  // Format Currency string
+  // Format Currency string in LKR
   const formatPrice = (amount: number, currency: string = 'LKR') => {
     const sym = CURRENCY_SYMBOLS[currency] || (currency === 'LKR' ? 'Rs. ' : '$');
     return `${sym}${Number(amount || 0).toLocaleString('en-LK', {
@@ -733,7 +788,7 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
         <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-lg">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Quotations (LKR)</p>
-            <p className="text-xl sm:text-2xl font-black text-white mt-1">
+            <p className="text-xl sm:text-2xl font-black text-white mt-1 font-mono">
               {formatPrice(metrics.totalQuotesValue, 'LKR')}
             </p>
             <p className="text-[11px] text-blue-400 mt-0.5">{metrics.quotesCount} active proposals</p>
@@ -746,7 +801,7 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
         <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-lg">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Settled / Paid (LKR)</p>
-            <p className="text-xl sm:text-2xl font-black text-emerald-400 mt-1">
+            <p className="text-xl sm:text-2xl font-black text-emerald-400 mt-1 font-mono">
               {formatPrice(metrics.paidInvoicesValue, 'LKR')}
             </p>
             <p className="text-[11px] text-emerald-500 mt-0.5">Cleared revenue</p>
@@ -759,7 +814,7 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
         <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-lg">
           <div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pending Invoices (LKR)</p>
-            <p className="text-xl sm:text-2xl font-black text-amber-400 mt-1">
+            <p className="text-xl sm:text-2xl font-black text-amber-400 mt-1 font-mono">
               {formatPrice(metrics.pendingInvoicesValue, 'LKR')}
             </p>
             <p className="text-[11px] text-amber-500 mt-0.5">Awaiting bank settlement</p>
@@ -1742,47 +1797,39 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
               {/* The Actual Corporate Branded Document Sheet */}
               <div
                 id="printable-document"
-                className="w-full max-w-3xl bg-white text-slate-900 rounded-xl shadow-2xl p-8 sm:p-12 space-y-7 font-sans print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none"
+                className="w-full max-w-3xl bg-white text-slate-900 rounded-xl shadow-2xl p-8 sm:p-12 space-y-6 font-sans print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none relative overflow-hidden"
               >
+                {/* Top Corporate Accent Bar */}
+                <div className="h-1.5 w-full bg-gradient-to-r from-[#0B1E3F] via-[#0066FF] to-[#00D2FF] rounded-full mb-4" />
+
                 {/* Top Header: Company Logo & Document Classification */}
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-6 border-b-2 border-slate-900 pb-6">
                   <div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-700 flex items-center justify-center font-black text-white text-xl shadow-md">
-                        V
-                      </div>
-                      <div>
-                        <h1 className="text-2xl font-black text-slate-950 tracking-tight">
-                          {settings?.name || 'VEXA IT SOLUTIONS (PVT) LTD'}
-                        </h1>
-                        <p className="text-xs font-bold text-blue-700 uppercase tracking-wider">
-                          Next-Gen Software Engineering & Digital Architecture
-                        </p>
-                      </div>
-                    </div>
+                    {/* Official VEXA IT Corporate Logo */}
+                    <VexaCorporateLogo />
 
-                    <div className="mt-3 text-xs text-slate-600 space-y-0.5">
-                      <p className="font-semibold text-slate-700">
+                    <div className="mt-4 text-xs text-slate-600 space-y-0.5">
+                      <p className="font-semibold text-slate-800">
                         {settings?.location || 'Colombo, Sri Lanka'}
                       </p>
                       <p>
                         <span className="font-semibold text-slate-700">Official Email:</span> {settings?.email || 'vexa.it2026@gmail.com'}
                       </p>
                       <p>
-                        <span className="font-semibold text-slate-700">Hotline:</span> {settings?.phone || '+94 71 269 6668'}
+                        <span className="font-semibold text-slate-700">Direct Hotline:</span> {settings?.phone || '+94 71 269 6668'}
                       </p>
                       <p>
                         <span className="font-semibold text-slate-700">Web Portal:</span> https://vexait.com
                       </p>
-                      <p className="text-[10px] text-slate-500 pt-0.5">
+                      <p className="text-[10px] text-slate-500 pt-1 font-mono">
                         Company Reg: PV 00298415 | SVAT: 114592019-7000
                       </p>
                     </div>
                   </div>
 
                   <div className="sm:text-right">
-                    <div className="inline-block bg-slate-950 text-white px-4 py-1.5 rounded-lg mb-2">
-                      <h2 className="text-xl font-black uppercase tracking-wider">
+                    <div className="inline-block bg-[#0B1E3F] text-white px-4 py-2 rounded-xl shadow-sm mb-2 border-b-2 border-[#0066FF]">
+                      <h2 className="text-lg sm:text-xl font-black uppercase tracking-wider">
                         {activeDoc.docType === 'quotation'
                           ? 'COMMERCIAL QUOTATION'
                           : activeDoc.docType === 'invoice'
@@ -1791,7 +1838,7 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
                       </h2>
                     </div>
 
-                    <p className="text-base font-mono font-black text-blue-700 mt-1">
+                    <p className="text-base font-mono font-black text-[#0066FF] mt-1">
                       {activeDoc.docNumber}
                     </p>
 
@@ -1811,14 +1858,14 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
                         <span className="font-bold text-slate-950">Sri Lankan Rupees (LKR)</span>
                       </div>
                       <div className="flex sm:justify-end gap-2 text-slate-600 pt-1">
-                        <span className="font-bold text-slate-900">Status:</span>
+                        <span className="font-bold text-slate-900">Document Status:</span>
                         <span
                           className={`uppercase font-black px-2 py-0.5 rounded text-[10px] ${
                             activeDoc.status === 'paid'
-                              ? 'bg-emerald-100 text-emerald-800'
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                               : activeDoc.status === 'approved'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-slate-100 text-slate-800'
+                              ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                              : 'bg-slate-100 text-slate-800 border border-slate-300'
                           }`}
                         >
                           {activeDoc.status}
@@ -1829,21 +1876,21 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
                 </div>
 
                 {/* Client Bill To Block */}
-                <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-slate-50/80 rounded-xl p-5 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">
-                      CLIENT / BILLED TO
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
+                      CLIENT DETAILS / BILLED TO
                     </h3>
                     <p className="text-base font-black text-slate-950">{activeDoc.clientName}</p>
                     {activeDoc.clientCompany && (
-                      <p className="text-xs font-bold text-slate-800 mt-0.5">{activeDoc.clientCompany}</p>
+                      <p className="text-xs font-bold text-[#0066FF] mt-0.5">{activeDoc.clientCompany}</p>
                     )}
                     {activeDoc.clientAddress && (
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">{activeDoc.clientAddress}</p>
                     )}
                     {activeDoc.clientTaxNo && (
                       <p className="text-[11px] font-mono text-slate-600 mt-1">
-                        <span className="font-bold">Tax/VAT No:</span> {activeDoc.clientTaxNo}
+                        <span className="font-bold text-slate-800">Tax/VAT No:</span> {activeDoc.clientTaxNo}
                       </p>
                     )}
                   </div>
@@ -1859,7 +1906,7 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
                         <span className="font-semibold text-slate-700">Phone:</span> {activeDoc.clientPhone}
                       </p>
                     )}
-                    <p className="text-[11px] font-semibold text-slate-500">
+                    <p className="text-[11px] font-semibold text-slate-500 pt-1">
                       Prepared by: {activeDoc.preparedBy || 'VEXA IT Engineering'}
                     </p>
                   </div>
@@ -1869,9 +1916,9 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
                 <div className="overflow-hidden border border-slate-200 rounded-xl">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-900 text-white text-[11px] font-bold uppercase tracking-wider">
+                      <tr className="bg-[#0B1E3F] text-white text-[11px] font-bold uppercase tracking-wider">
                         <th className="py-3 px-3 text-center w-12">#</th>
-                        <th className="py-3 px-3">Service & Scope of Deliverables</th>
+                        <th className="py-3 px-3">Service Scope & Technical Deliverables</th>
                         <th className="py-3 px-3 text-center w-24">Qty / Unit</th>
                         <th className="py-3 px-3 text-right w-32">Unit Price (LKR)</th>
                         <th className="py-3 px-3 text-right w-36">Total (LKR)</th>
@@ -1882,25 +1929,25 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
                         const rowTotal = item.quantity * item.unitPrice;
                         return (
                           <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}>
-                            <td className="py-3 px-3 font-mono text-slate-400 text-center font-bold">{index + 1}</td>
-                            <td className="py-3 px-3">
+                            <td className="py-3.5 px-3 font-mono text-slate-400 text-center font-bold">{index + 1}</td>
+                            <td className="py-3.5 px-3">
                               <p className="font-black text-slate-950 text-xs">{item.description}</p>
                               {item.scopeNotes && (
                                 <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">{item.scopeNotes}</p>
                               )}
                               {item.category && (
-                                <span className="inline-block text-[9px] font-bold uppercase bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded mt-1">
+                                <span className="inline-block text-[9px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.2 rounded mt-1">
                                   {item.category}
                                 </span>
                               )}
                             </td>
-                            <td className="py-3 px-3 text-center font-semibold text-slate-700">
+                            <td className="py-3.5 px-3 text-center font-semibold text-slate-700">
                               {item.quantity} {item.unit}
                             </td>
-                            <td className="py-3 px-3 text-right font-mono text-slate-800">
+                            <td className="py-3.5 px-3 text-right font-mono text-slate-800">
                               {formatPrice(item.unitPrice, activeDoc.currency)}
                             </td>
-                            <td className="py-3 px-3 text-right font-mono font-black text-slate-950">
+                            <td className="py-3.5 px-3 text-right font-mono font-black text-slate-950">
                               {formatPrice(rowTotal, activeDoc.currency)}
                             </td>
                           </tr>
@@ -1978,8 +2025,8 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
                           </div>
                         )}
 
-                        <div className="flex justify-between items-center p-3 bg-slate-900 text-white rounded-xl shadow-md mt-2">
-                          <span className="text-sm font-black uppercase tracking-wider">Net Amount (LKR):</span>
+                        <div className="flex justify-between items-center p-3.5 bg-[#0B1E3F] text-white rounded-xl shadow-md mt-2 border-t-2 border-[#0066FF]">
+                          <span className="text-sm font-black uppercase tracking-wider">Net Total (LKR):</span>
                           <span className="text-xl font-black text-amber-300 font-mono">
                             {formatPrice(grandTotal, activeDoc.currency)}
                           </span>
@@ -2009,7 +2056,7 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
                   <div className="grid grid-cols-2 gap-8 pt-4">
                     {/* Authorized Signatory */}
                     <div>
-                      <div className="h-14 border-b border-slate-400 flex items-end pb-1">
+                      <div className="h-14 border-b-2 border-slate-400 flex items-end pb-1">
                         <span className="text-xs font-serif italic text-blue-900 font-bold">VEXA IT Management</span>
                       </div>
                       <p className="text-xs font-black text-slate-900 mt-1.5">Authorized Signatory & Seal</p>
@@ -2018,15 +2065,15 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
 
                     {/* Client Acceptance */}
                     <div className="text-right">
-                      <div className="h-14 border-b border-slate-400"></div>
+                      <div className="h-14 border-b-2 border-slate-400"></div>
                       <p className="text-xs font-black text-slate-900 mt-1.5">Client Acceptance & Signature</p>
                       <p className="text-[10px] text-slate-500">Date: ____ / ____ / 2026</p>
                     </div>
                   </div>
 
                   <div className="text-center pt-2 border-t border-slate-100">
-                    <p className="text-[10px] text-slate-400">
-                      This is an official digital commercial document generated securely by VEXA IT Command Center • Colombo, Sri Lanka
+                    <p className="text-[10px] text-slate-400 font-mono">
+                      Official digital commercial document generated securely by VEXA IT Command Center • Colombo, Sri Lanka
                     </p>
                   </div>
                 </div>
