@@ -51,11 +51,13 @@ import {
   Calendar,
   Save,
   RotateCcw,
+  Receipt,
 } from 'lucide-react';
 import { ProjectItem, portfolioData } from '../data/portfolio';
 import { useSite, SiteSettingsData } from '../context/SiteContext';
 import { ServicePricing, PricingPackage, pricingData as defaultPricingData } from '../data/pricingData';
 import { formatCaseStudyHtml, convertMarkdownToHtml } from '../utils/formatHtml';
+import { InvoiceGenerator } from './InvoiceGenerator';
 
 interface AdminPanelProps {
   onExit: () => void;
@@ -77,14 +79,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
     return localStorage.getItem('vexa_admin_custom_pwd') || 'admin';
   });
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('vexa_admin_auth') === 'true';
+    const isAuth = localStorage.getItem('vexa_admin_auth') === 'true';
+    const lastActive = localStorage.getItem('vexa_admin_last_active');
+    if (isAuth && lastActive) {
+      const elapsed = Date.now() - parseInt(lastActive, 10);
+      if (elapsed > 5 * 60 * 1000) {
+        localStorage.removeItem('vexa_admin_auth');
+        localStorage.removeItem('vexa_admin_last_active');
+        return false;
+      }
+    }
+    return isAuth;
   });
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'projects' | 'inquiries' | 'pricing' | 'settings' | 'newsletter' | 'system'
+    'overview' | 'projects' | 'inquiries' | 'billing' | 'pricing' | 'settings' | 'newsletter' | 'system'
   >('overview');
 
   // Projects State
@@ -188,6 +200,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
     if (validPasswords.includes(passwordInput.trim())) {
       setIsAuthenticated(true);
       localStorage.setItem('vexa_admin_auth', 'true');
+      localStorage.setItem('vexa_admin_last_active', Date.now().toString());
       setAuthError('');
       showToast('Welcome to VEXA IT Command Center');
     } else {
@@ -195,10 +208,62 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = (reason?: string) => {
     setIsAuthenticated(false);
     localStorage.removeItem('vexa_admin_auth');
+    localStorage.removeItem('vexa_admin_last_active');
+    if (typeof reason === 'string' && reason) {
+      setAuthError(reason);
+    }
   };
+
+  // Auto-logout after 5 minutes of inactivity
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const INACTIVITY_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
+    let inactivityTimer: NodeJS.Timeout;
+
+    const resetInactivityTimer = () => {
+      localStorage.setItem('vexa_admin_last_active', Date.now().toString());
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        handleLogout('Session timed out after 5 minutes of inactivity. Please log in again.');
+      }, INACTIVITY_LIMIT_MS);
+    };
+
+    // Initialize timer on session start
+    resetInactivityTimer();
+
+    // Listen for user interactions to reset idle timer
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+    const handleUserActivity = () => {
+      resetInactivityTimer();
+    };
+
+    activityEvents.forEach((ev) => {
+      window.addEventListener(ev, handleUserActivity, { passive: true });
+    });
+
+    // Periodic check in case tab is idle in background or waking from sleep
+    const intervalCheck = setInterval(() => {
+      const lastActive = localStorage.getItem('vexa_admin_last_active');
+      if (lastActive) {
+        const elapsed = Date.now() - parseInt(lastActive, 10);
+        if (elapsed >= INACTIVITY_LIMIT_MS) {
+          handleLogout('Session timed out after 5 minutes of inactivity. Please log in again.');
+        }
+      }
+    }, 15000);
+
+    return () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      clearInterval(intervalCheck);
+      activityEvents.forEach((ev) => {
+        window.removeEventListener(ev, handleUserActivity);
+      });
+    };
+  }, [isAuthenticated]);
 
   // Fetch Projects from API
   const fetchProjects = async () => {
@@ -884,7 +949,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                 type="password"
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="Enter password (default: admin)"
+                placeholder="Enter administrator password"
                 className="w-full px-4 py-3 bg-slate-900/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 autoFocus
               />
@@ -1041,6 +1106,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                 {inquiries.length}
               </span>
             )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('billing')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'billing'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <Receipt className="w-4 h-4" />
+            <span>Quotes & Invoicing</span>
           </button>
 
           <button
@@ -1209,6 +1286,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                   <div>
                     <div className="text-xs font-bold text-white">Record Contact Lead</div>
                     <div className="text-[11px] text-slate-400">Manual client entry</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('billing')}
+                  className="p-4 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl text-left transition-all cursor-pointer flex items-center gap-3"
+                >
+                  <div className="p-2.5 bg-blue-600/20 text-blue-400 rounded-lg">
+                    <Receipt className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-white">Create Quote / Bill</div>
+                    <div className="text-[11px] text-slate-400">Custom prices & discounts</div>
                   </div>
                 </button>
 
@@ -1881,6 +1971,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB: QUOTATIONS & INVOICES / BILLING MANAGER
+           ========================================================================= */}
+        {activeTab === 'billing' && (
+          <div className="animate-fadeIn">
+            <InvoiceGenerator
+              inquiries={inquiries}
+              onNotify={(msg, type) => showToast(msg, type)}
+            />
           </div>
         )}
 
