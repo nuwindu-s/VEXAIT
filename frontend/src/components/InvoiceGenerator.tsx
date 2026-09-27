@@ -1182,11 +1182,11 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
                       >
                         <option value="">Insert from Service Catalog...</option>
                         {pricingList.map((svc) => (
-                          <optgroup key={svc.serviceId} label={svc.serviceName}>
+                          <optgroup key={svc.id} label={svc.serviceTitle}>
                             {svc.packages.map((pkg) => (
                               <option
                                 key={pkg.id}
-                                value={`${svc.serviceName}|${pkg.name}|${pkg.price}`}
+                                value={`${svc.serviceTitle}|${pkg.name}|${pkg.price}`}
                               >
                                 {pkg.name} ({pkg.price})
                               </option>
@@ -1602,7 +1602,7 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
                     </div>
 
                     <div className="mt-4 text-xs text-slate-600 space-y-0.5">
-                      <p>{settings?.address || 'Colombo, Sri Lanka & Global Operations'}</p>
+                      <p>{settings?.location || 'Colombo, Sri Lanka & Global Operations'}</p>
                       <p>Email: {settings?.email || 'contact@vexait.com'}</p>
                       <p>Phone: {settings?.phone || '+94 77 123 4567'}</p>
                       <p>Web: https://vexait.com</p>

@@ -1047,7 +1047,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
               <span className="hidden sm:inline">Live Website</span>
             </button>
             <button
-              onClick={handleLogout}
+              onClick={() => handleLogout()}
               className="px-3 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-300 hover:text-red-100 text-xs font-semibold transition-colors flex items-center gap-1.5 border border-red-800/50 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
