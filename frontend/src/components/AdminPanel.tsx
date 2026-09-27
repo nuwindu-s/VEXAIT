@@ -51,11 +51,13 @@ import {
   Calendar,
   Save,
   RotateCcw,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { ProjectItem, portfolioData } from '../data/portfolio';
 import { useSite, SiteSettingsData } from '../context/SiteContext';
 import { ServicePricing, PricingPackage, pricingData as defaultPricingData } from '../data/pricingData';
 import { formatCaseStudyHtml, convertMarkdownToHtml } from '../utils/formatHtml';
+import { QuotationInvoiceDashboard } from './billing/QuotationInvoiceDashboard';
 
 interface AdminPanelProps {
   onExit: () => void;
@@ -94,7 +96,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'projects' | 'inquiries' | 'pricing' | 'settings' | 'newsletter' | 'system'
+    'overview' | 'projects' | 'inquiries' | 'billing' | 'pricing' | 'settings' | 'newsletter' | 'system'
   >('overview');
 
   // Projects State
@@ -1106,6 +1108,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
             )}
           </button>
 
+          <button
+            onClick={() => setActiveTab('billing')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'billing'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Invoices & Quotations</span>
+          </button>
 
           <button
             onClick={() => setActiveTab('pricing')}
@@ -1276,6 +1289,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                   </div>
                 </button>
 
+
+                <button
+                  onClick={() => setActiveTab('billing')}
+                  className="p-4 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl text-left transition-all cursor-pointer flex items-center gap-3"
+                >
+                  <div className="p-2.5 bg-blue-600/20 text-blue-400 rounded-lg">
+                    <FileSpreadsheet className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-white">Create Quote / Invoice</div>
+                    <div className="text-[11px] text-slate-400">LKR pricing & PDF billing</div>
+                  </div>
+                </button>
 
                 <button
                   onClick={() => setActiveTab('pricing')}
@@ -1949,6 +1975,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
           </div>
         )}
 
+
+        {/* =========================================================================
+            TAB: INVOICES & QUOTATIONS (www.vexait.xyz)
+           ========================================================================= */}
+        {activeTab === 'billing' && (
+          <div className="animate-fadeIn">
+            <QuotationInvoiceDashboard
+              inquiries={inquiries}
+              onNotify={(msg, type) => showToast(msg, type)}
+            />
+          </div>
+        )}
 
         {/* =========================================================================
             TAB 5: SITE SETTINGS, HERO & CONTACT CONTROL
