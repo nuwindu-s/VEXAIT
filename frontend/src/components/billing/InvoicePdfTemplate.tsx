@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import { Invoice, Quotation, BillingSettings } from '../../types/billing';
 import { formatCurrency, numberToWords } from '../../utils/billingUtils';
-import { Printer, Share2, Check, X, Download, Landmark, FileCheck } from 'lucide-react';
+import { downloadDocumentAsPdf, printDocumentIsolated } from '../../utils/pdfExport';
+import {
+  Printer,
+  Share2,
+  Check,
+  X,
+  Download,
+  Landmark,
+  FileCheck,
+  RefreshCw,
+  FileDown,
+} from 'lucide-react';
 
 interface InvoicePdfTemplateProps {
   document: Quotation | Invoice;
@@ -18,13 +29,30 @@ export const InvoicePdfTemplate: React.FC<InvoicePdfTemplateProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [logoLoaded, setLogoLoaded] = useState(true);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const isInvoice = 'invoice_number' in doc;
   const docNumber = isInvoice ? (doc as Invoice).invoice_number : (doc as Quotation).quote_number;
   const isQuotation = !isInvoice;
 
+  // Direct 1-Click PDF Download
+  const handleDownloadPdf = async () => {
+    try {
+      if (onNotify) onNotify(`Generating high-res PDF for ${docNumber}...`, 'success');
+      await downloadDocumentAsPdf('printable-document', docNumber, (loading) => {
+        setIsGeneratingPdf(loading);
+      });
+      if (onNotify) onNotify(`Downloaded ${docNumber}.pdf successfully!`, 'success');
+    } catch (err) {
+      console.error('Download PDF error:', err);
+      if (onNotify) onNotify('Failed to generate PDF download, opening print preview...', 'error');
+      handlePrint();
+    }
+  };
+
+  // Isolated Sandbox Print (Prevents Modal/Background Cutoffs)
   const handlePrint = () => {
-    window.print();
+    printDocumentIsolated('printable-document', `${docNumber} - ${settings.company_name}`);
   };
 
   const handleCopyText = () => {
@@ -88,7 +116,7 @@ export const InvoicePdfTemplate: React.FC<InvoicePdfTemplateProps> = ({
         @media print {
           @page {
             size: A4 portrait;
-            margin: 8mm 10mm;
+            margin: 6mm 8mm;
           }
           body {
             background-color: white !important;
@@ -130,8 +158,8 @@ export const InvoicePdfTemplate: React.FC<InvoicePdfTemplateProps> = ({
                 >
                   {doc.status}
                 </span>
-                <span className="text-[11px] text-slate-400 font-normal">
-                  • Optimized for 1-Page A4 PDF
+                <span className="text-[11px] text-slate-400 font-normal hidden sm:inline">
+                  • 1-Page A4 PDF
                 </span>
               </h3>
             </div>
@@ -151,17 +179,39 @@ export const InvoicePdfTemplate: React.FC<InvoicePdfTemplateProps> = ({
               ) : (
                 <>
                   <Share2 className="w-3.5 h-3.5" />
-                  <span>Copy Summary</span>
+                  <span>Copy Text</span>
                 </>
               )}
             </button>
 
+            {/* Direct PDF Download Button */}
+            <button
+              onClick={handleDownloadPdf}
+              disabled={isGeneratingPdf}
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+              title="Download direct PDF file to your computer"
+            >
+              {isGeneratingPdf ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Generating PDF...</span>
+                </>
+              ) : (
+                <>
+                  <FileDown className="w-3.5 h-3.5" />
+                  <span>Download PDF</span>
+                </>
+              )}
+            </button>
+
+            {/* Print / Save as PDF Button */}
             <button
               onClick={handlePrint}
-              className="px-4 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-lg shadow-blue-600/20 transition-all cursor-pointer"
+              className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-lg shadow-blue-600/20 transition-all cursor-pointer"
+              title="Open browser print dialog"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>Print / Save as PDF</span>
+              <span>Print / Browser PDF</span>
             </button>
 
             <button
@@ -178,13 +228,13 @@ export const InvoicePdfTemplate: React.FC<InvoicePdfTemplateProps> = ({
           {/* 1-Page Optimized White A4 Document Sheet */}
           <div
             id="printable-document"
-            className="w-full max-w-3xl bg-white text-slate-900 rounded-xl shadow-2xl p-6 sm:p-8 space-y-3.5 font-sans print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none relative overflow-hidden"
+            className="w-full max-w-3xl bg-white text-slate-900 rounded-xl shadow-2xl p-6 sm:p-8 space-y-3 font-sans print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none relative overflow-hidden"
           >
             {/* Top Corporate Accent Bar */}
             <div className="h-1 w-full bg-gradient-to-r from-[#070E1E] via-[#0066FF] to-[#00D2FF] rounded-full print:hidden" />
 
             {/* Header: Official Logo + Company Info & Document Classification */}
-            <div className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b border-slate-300 pb-3.5">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b border-slate-300 pb-3">
               <div className="flex items-start gap-3.5">
                 {/* Official VEXA IT Logo (Attached Graphic) */}
                 <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-white border border-slate-200 flex items-center justify-center p-1 shadow-sm">
@@ -252,7 +302,7 @@ export const InvoicePdfTemplate: React.FC<InvoicePdfTemplateProps> = ({
             </div>
 
             {/* Client Info Block (Compact) */}
-            <div className="bg-slate-50 rounded-lg p-3 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
               <div>
                 <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">
                   BILLED TO / CLIENT
@@ -305,20 +355,20 @@ export const InvoicePdfTemplate: React.FC<InvoicePdfTemplateProps> = ({
                     const rowTotal = item.quantity * item.unit_price;
                     return (
                       <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}>
-                        <td className="py-2 px-2.5 font-mono text-slate-400 text-center font-bold">{index + 1}</td>
-                        <td className="py-2 px-2.5">
+                        <td className="py-1.5 px-2.5 font-mono text-slate-400 text-center font-bold">{index + 1}</td>
+                        <td className="py-1.5 px-2.5">
                           <p className="font-black text-slate-950 text-xs leading-snug">{item.title}</p>
                           {item.description && (
                             <p className="text-[10px] text-slate-600 leading-tight">{item.description}</p>
                           )}
                         </td>
-                        <td className="py-2 px-2.5 text-center font-semibold text-slate-700">
+                        <td className="py-1.5 px-2.5 text-center font-semibold text-slate-700">
                           {item.quantity} {item.unit}
                         </td>
-                        <td className="py-2 px-2.5 text-right font-mono text-slate-800">
+                        <td className="py-1.5 px-2.5 text-right font-mono text-slate-800">
                           {formatCurrency(item.unit_price, doc.currency)}
                         </td>
-                        <td className="py-2 px-2.5 text-right font-mono font-black text-slate-950">
+                        <td className="py-1.5 px-2.5 text-right font-mono font-black text-slate-950">
                           {formatCurrency(rowTotal, doc.currency)}
                         </td>
                       </tr>
@@ -329,9 +379,9 @@ export const InvoicePdfTemplate: React.FC<InvoicePdfTemplateProps> = ({
             </div>
 
             {/* Financial Totals & Bank Details (Side by Side Grid) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 border-t border-slate-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1 border-t border-slate-200">
               {/* Left: Notes & Bank Details */}
-              <div className="space-y-2 text-[10px] text-slate-600">
+              <div className="space-y-1.5 text-[10px] text-slate-600">
                 {doc.notes && (
                   <div className="bg-blue-50/60 border border-blue-100 p-2 rounded-lg">
                     <span className="font-bold text-blue-900 uppercase">Notes: </span>
@@ -384,7 +434,7 @@ export const InvoicePdfTemplate: React.FC<InvoicePdfTemplateProps> = ({
                   </div>
                 )}
 
-                <div className="flex justify-between items-center p-2.5 bg-[#070E1E] text-white rounded-lg shadow-sm mt-1 border-t-2 border-[#0066FF]">
+                <div className="flex justify-between items-center p-2 bg-[#070E1E] text-white rounded-lg shadow-sm mt-1 border-t-2 border-[#0066FF]">
                   <span className="text-xs font-black uppercase tracking-wider">Net Amount:</span>
                   <span className="text-base sm:text-lg font-black text-amber-300 font-mono">
                     {formatCurrency(doc.total_amount, doc.currency)}
@@ -398,7 +448,7 @@ export const InvoicePdfTemplate: React.FC<InvoicePdfTemplateProps> = ({
                   </div>
                 )}
 
-                <div className="pt-1 text-[10px] text-slate-600 leading-tight">
+                <div className="pt-0.5 text-[10px] text-slate-600 leading-tight">
                   <span className="font-bold text-slate-900">In Words: </span>
                   {numberToWords(doc.total_amount, doc.currency)}
                 </div>
@@ -406,7 +456,7 @@ export const InvoicePdfTemplate: React.FC<InvoicePdfTemplateProps> = ({
             </div>
 
             {/* Terms of Service (Condensed 1-Page) */}
-            <div className="pt-2 border-t border-slate-200 space-y-2">
+            <div className="pt-2 border-t border-slate-200 space-y-1.5">
               <div>
                 <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-wider mb-0.5 flex items-center gap-1">
                   <FileCheck className="w-3 h-3 text-blue-600" />
@@ -420,15 +470,15 @@ export const InvoicePdfTemplate: React.FC<InvoicePdfTemplateProps> = ({
               {/* Dual Signatures */}
               <div className="grid grid-cols-2 gap-6 pt-1">
                 <div>
-                  <div className="h-9 border-b border-slate-400 flex items-end pb-0.5">
+                  <div className="h-8 border-b border-slate-400 flex items-end pb-0.5">
                     <span className="text-[11px] font-serif italic text-blue-900 font-bold">VEXA IT Management</span>
                   </div>
-                  <p className="text-[10px] font-bold text-slate-900 mt-1">Authorized Signatory & Seal</p>
+                  <p className="text-[10px] font-bold text-slate-900 mt-0.5">Authorized Signatory & Seal</p>
                 </div>
 
                 <div className="text-right">
-                  <div className="h-9 border-b border-slate-400"></div>
-                  <p className="text-[10px] font-bold text-slate-900 mt-1">Client Acceptance Signature</p>
+                  <div className="h-8 border-b border-slate-400"></div>
+                  <p className="text-[10px] font-bold text-slate-900 mt-0.5">Client Acceptance Signature</p>
                 </div>
               </div>
 
