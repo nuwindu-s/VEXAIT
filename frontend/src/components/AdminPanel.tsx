@@ -222,7 +222,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
     if (!isAuthenticated) return;
 
     const INACTIVITY_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
-    let inactivityTimer: NodeJS.Timeout;
+    let inactivityTimer: ReturnType<typeof setTimeout>;
 
     const resetInactivityTimer = () => {
       localStorage.setItem('vexa_admin_last_active', Date.now().toString());
