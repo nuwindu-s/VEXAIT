@@ -29,39 +29,13 @@ export const Logo: React.FC<LogoProps> = ({
 
   return (
     <div className={`flex items-center gap-3 select-none ${className}`}>
-      {/* Precision Geometric V Logo Mark */}
-      <div className={`relative flex items-center justify-center shrink-0 ${iconSizes[size]}`}>
-        <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-sm" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Background subtle hexagon/shield glow */}
-          <circle cx="60" cy="60" r="50" fill={isDarkBg ? "#0066FF" : "#00D2FF"} opacity={isDarkBg ? "0.15" : "0.1"} />
-          
-          {/* Outer Geometric Frame */}
-          <path
-            d="M24 28 L44 28 L60 76 L76 28 L96 28 L68 98 L52 98 Z"
-            fill={isDarkBg ? "#FFFFFF" : "#0A192F"}
-          />
-          
-          {/* Electric Blue Inner Accent Dynamic Strokes */}
-          <path
-            d="M38 32 L50 32 L60 62 L70 32 L82 32 L64 82 L56 82 Z"
-            fill="#0066FF"
-          />
-          
-          {/* Cyan High-Tech Intersection Bar */}
-          <path
-            d="M48 48 L72 48 L68 58 L52 58 Z"
-            fill="#00D2FF"
-          />
-          
-          {/* Angular Tech Notch Lines */}
-          <path
-            d="M74 24 L94 24 L80 62"
-            stroke="#00D2FF"
-            strokeWidth="4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+      {/* Precision Official VEXA IT Logo Mark */}
+      <div className={`relative flex items-center justify-center shrink-0 overflow-hidden rounded-lg ${iconSizes[size]}`}>
+        <img
+          src="/vexa_logo.png"
+          alt="VEXA IT Logo"
+          className="w-full h-full object-contain"
+        />
       </div>
 
       {/* Brand Wordmark Typography */}

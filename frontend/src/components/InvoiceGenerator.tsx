@@ -176,10 +176,10 @@ export const VexaCorporateLogo: React.FC<{ className?: string; darkTheme?: boole
     <div className={`flex items-center gap-3.5 select-none ${className}`}>
       {imageLoaded ? (
         <img
-          src="/logo.jpg"
+          src="/vexa_logo.png"
           alt="VEXA IT Logo"
           onError={() => setImageLoaded(false)}
-          className="w-14 h-14 object-contain rounded-lg shrink-0 border border-slate-200/80 shadow-sm bg-white p-0.5"
+          className="w-14 h-14 object-contain rounded-lg shrink-0 border border-slate-200/80 shadow-sm bg-slate-900 p-1"
         />
       ) : (
         /* High-Resolution Geometric V Vector Fallback */
