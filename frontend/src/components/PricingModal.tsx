@@ -1,10 +1,14 @@
 import React, { useEffect } from 'react';
 import { X, Check, ArrowRight, Sparkles, HelpCircle, ShieldCheck } from 'lucide-react';
 import { PricingPackage, ServicePricing } from '../data/pricingData';
+import { SupportedCurrency, formatPriceInCurrency, DEFAULT_CURRENCY } from '../utils/currency';
+import { CurrencySelector } from './CurrencySelector';
 
 interface PricingModalProps {
   service: ServicePricing | null;
   packageItem: PricingPackage | null;
+  currency?: SupportedCurrency;
+  onCurrencyChange?: (currency: SupportedCurrency) => void;
   onClose: () => void;
   onRequestProposal: (serviceTitle: string, packageName: string, price: string) => void;
 }
@@ -12,6 +16,8 @@ interface PricingModalProps {
 export const PricingModal: React.FC<PricingModalProps> = ({
   service,
   packageItem,
+  currency = DEFAULT_CURRENCY,
+  onCurrencyChange,
   onClose,
   onRequestProposal,
 }) => {
@@ -25,9 +31,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
   if (!service || !packageItem) return null;
 
+  const formattedPrice = `${packageItem.isStartingFrom ? 'Starting from ' : ''}${formatPriceInCurrency(packageItem.price, currency)}${packageItem.billingPeriod || ''}`;
+
   const handleProposalClick = () => {
-    const priceFormatted = `${packageItem.isStartingFrom ? 'Starting from ' : ''}${packageItem.price}${packageItem.billingPeriod || ''}`;
-    onRequestProposal(service.serviceTitle, packageItem.name, priceFormatted);
+    onRequestProposal(service.serviceTitle, packageItem.name, formattedPrice);
     onClose();
   };
 
@@ -48,21 +55,31 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-5 right-5 p-2 rounded-xl bg-white/10 text-slate-300 hover:text-white hover:bg-white/20 transition-all cursor-pointer"
+            className="absolute top-5 right-5 p-2 rounded-xl bg-white/10 text-slate-300 hover:text-white hover:bg-white/20 transition-all cursor-pointer z-10"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
 
-          <div className="flex items-center gap-2 mb-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase bg-blue-500/20 text-[#00D2FF] border border-blue-400/30">
-              {service.serviceTitle}
-            </span>
-            {packageItem.popular && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border border-amber-400/30">
-                <Sparkles className="w-3 h-3" />
-                Most Popular
+          <div className="flex items-center justify-between gap-2 pr-10 mb-2">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase bg-blue-500/20 text-[#00D2FF] border border-blue-400/30">
+                {service.serviceTitle}
               </span>
+              {packageItem.popular && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border border-amber-400/30">
+                  <Sparkles className="w-3 h-3" />
+                  Most Popular
+                </span>
+              )}
+            </div>
+
+            {onCurrencyChange && (
+              <CurrencySelector
+                selectedCurrency={currency}
+                onCurrencyChange={onCurrencyChange}
+                variant="dark"
+              />
             )}
           </div>
 
@@ -77,7 +94,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
               </span>
             )}
             <span className="text-3xl font-extrabold text-[#00D2FF]">
-              {packageItem.price}
+              {formatPriceInCurrency(packageItem.price, currency, { hideSuffix: true })}
             </span>
             {packageItem.billingPeriod && (
               <span className="text-sm font-medium text-slate-300">

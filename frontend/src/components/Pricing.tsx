@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { ServicePricing, PricingPackage } from '../data/pricingData';
 import { useSite } from '../context/SiteContext';
 import { PricingModal } from './PricingModal';
+import { SupportedCurrency, formatPriceInCurrency, DEFAULT_CURRENCY } from '../utils/currency';
+import { CurrencySelector } from './CurrencySelector';
 import {
   Globe,
   Code,
@@ -16,6 +18,7 @@ import {
   ShieldCheck,
   Layers,
   MessageSquare,
+  Coins,
 } from 'lucide-react';
 
 interface PricingProps {
@@ -30,6 +33,7 @@ export const Pricing: React.FC<PricingProps> = ({
   selectedServiceId,
 }) => {
   const { pricingList } = useSite();
+  const [currency, setCurrency] = useState<SupportedCurrency>(DEFAULT_CURRENCY);
   const [activeServiceId, setActiveServiceId] = useState<string>(
     selectedServiceId || 'web-development'
   );
@@ -78,7 +82,7 @@ export const Pricing: React.FC<PricingProps> = ({
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Section Header */}
-        <div className="max-w-3xl mx-auto text-center space-y-4 mb-14">
+        <div className="max-w-3xl mx-auto text-center space-y-4 mb-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-100/80 border border-blue-200 text-blue-700 text-xs font-bold tracking-wider uppercase">
             <Sparkles className="w-3.5 h-3.5 text-blue-600" />
             <span>Affordable & Transparent Packages</span>
@@ -91,10 +95,28 @@ export const Pricing: React.FC<PricingProps> = ({
           <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">
             Choose a package that fits your business. Need something different? We can build a solution around your requirements.
           </p>
+        </div>
 
-          <p className="text-xs text-slate-400 font-medium">
-            Affordable technology solutions tailored for Sri Lankan startups, SMEs, and growing enterprises.
-          </p>
+        {/* Currency Selector Toolbar */}
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-slate-200/90 rounded-2xl p-4 sm:px-6 shadow-xs max-w-5xl mx-auto mb-10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+              <Coins className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-900">
+                Display Currency
+              </p>
+              <p className="text-[11px] text-slate-500">
+                Change pricing currency (Default: USD $)
+              </p>
+            </div>
+          </div>
+
+          <CurrencySelector
+            selectedCurrency={currency}
+            onCurrencyChange={(newCurr) => setCurrency(newCurr)}
+          />
         </div>
 
         {/* Service Selector Tabs */}
@@ -130,7 +152,7 @@ export const Pricing: React.FC<PricingProps> = ({
               {currentService.serviceTitle}
             </h3>
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-              Starting from {currentService.startingPrice}
+              Starting from {formatPriceInCurrency(currentService.startingPrice, currency)}
             </span>
           </div>
           <p className="text-sm text-slate-600">
@@ -150,6 +172,7 @@ export const Pricing: React.FC<PricingProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch mb-16">
           {currentService.packages.map((pkg) => {
             const isPopular = pkg.popular;
+            const priceFormatted = `${pkg.isStartingFrom ? 'Starting from ' : ''}${formatPriceInCurrency(pkg.price, currency)}${pkg.billingPeriod || ''}`;
 
             return (
               <div
@@ -176,8 +199,8 @@ export const Pricing: React.FC<PricingProps> = ({
                     <h4 className="text-xl font-bold text-slate-900">
                       {pkg.name}
                     </h4>
-                    <span className="text-[11px] font-semibold text-slate-400 tracking-wider uppercase">
-                      LKR
+                    <span className="text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-md uppercase">
+                      {currency}
                     </span>
                   </div>
 
@@ -190,7 +213,7 @@ export const Pricing: React.FC<PricingProps> = ({
                     )}
                     <div className="flex items-baseline gap-1">
                       <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                        {pkg.price}
+                        {formatPriceInCurrency(pkg.price, currency, { hideSuffix: true })}
                       </span>
                       {pkg.billingPeriod && (
                         <span className="text-sm font-semibold text-slate-500">
@@ -214,7 +237,7 @@ export const Pricing: React.FC<PricingProps> = ({
                       {pkg.features.map((feat, idx) => (
                         <li key={idx} className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
                           <div className="w-4 h-4 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
-                            <Check className="w-3 h-3 stroke-[3]" />
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
                           </div>
                           <span>{feat}</span>
                         </li>
@@ -236,7 +259,6 @@ export const Pricing: React.FC<PricingProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      const priceFormatted = `${pkg.isStartingFrom ? 'Starting from ' : ''}${pkg.price}${pkg.billingPeriod || ''}`;
                       onSelectPackage(currentService.serviceTitle, pkg.name, priceFormatted);
                     }}
                     className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
@@ -292,7 +314,7 @@ export const Pricing: React.FC<PricingProps> = ({
                       {s.serviceTitle}
                     </h5>
                     <p className="text-[10px] text-slate-500">
-                      From {s.startingPrice}
+                      From {formatPriceInCurrency(s.startingPrice, currency)}
                     </p>
                   </div>
                 </button>
@@ -303,7 +325,6 @@ export const Pricing: React.FC<PricingProps> = ({
 
         {/* Bottom Call to Action Callout */}
         <div className="p-8 sm:p-10 rounded-2xl bg-gradient-to-r from-[#0A192F] via-[#0D2240] to-[#0A192F] text-white border border-slate-800 shadow-xl relative overflow-hidden">
-          {/* Subtle Glow */}
           <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
@@ -344,6 +365,8 @@ export const Pricing: React.FC<PricingProps> = ({
       <PricingModal
         service={modalState.service}
         packageItem={modalState.packageItem}
+        currency={currency}
+        onCurrencyChange={(newCurr) => setCurrency(newCurr)}
         onClose={handleCloseModal}
         onRequestProposal={(serviceTitle, packageName, price) => {
           onSelectPackage(serviceTitle, packageName, price);

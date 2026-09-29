@@ -3,6 +3,12 @@ import { servicesData, ServiceItem } from '../data/services';
 import { useSite } from '../context/SiteContext';
 import { ServicePricing, PricingPackage } from '../data/pricingData';
 import {
+  SupportedCurrency,
+  formatPriceInCurrency,
+  DEFAULT_CURRENCY,
+} from '../utils/currency';
+import { CurrencySelector } from './CurrencySelector';
+import {
   Globe,
   Code,
   Layout,
@@ -17,6 +23,7 @@ import {
   X,
   Layers,
   HelpCircle,
+  Coins,
 } from 'lucide-react';
 
 interface ServicesProps {
@@ -33,6 +40,7 @@ export const Services: React.FC<ServicesProps> = ({
     service: ServiceItem;
     pricing?: ServicePricing;
   } | null>(null);
+  const [currency, setCurrency] = useState<SupportedCurrency>(DEFAULT_CURRENCY);
 
   const getServiceIcon = (name: string, className = "w-6 h-6 text-blue-600") => {
     switch (name) {
@@ -76,7 +84,7 @@ export const Services: React.FC<ServicesProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="max-w-3xl mx-auto text-center space-y-4 mb-14">
+        <div className="max-w-3xl mx-auto text-center space-y-4 mb-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-100/70 border border-blue-200 text-blue-700 text-xs font-bold tracking-wider uppercase">
             <Sparkles className="w-3.5 h-3.5 text-blue-600" />
             <span>Our Capabilities & Solutions</span>
@@ -91,7 +99,31 @@ export const Services: React.FC<ServicesProps> = ({
           </p>
         </div>
 
-        {/* Small Compact Service Cards Grid (Symmetrically Balanced) */}
+        {/* Currency Selector Toolbar (Default USD) */}
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-slate-200/90 rounded-2xl p-4 sm:px-6 shadow-xs max-w-5xl mx-auto mb-12">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+              <Coins className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-900">
+                Service Pricing Currency
+              </p>
+              <p className="text-[11px] text-slate-500">
+                All package rates adjust dynamically. Default currency is USD ($).
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <CurrencySelector
+              selectedCurrency={currency}
+              onCurrencyChange={(newCurr) => setCurrency(newCurr)}
+            />
+          </div>
+        </div>
+
+        {/* Small Compact Service Cards Grid */}
         <div className="flex flex-wrap justify-center gap-6">
           {servicesData.map((service) => {
             const pricing = getPricingForService(service.id);
@@ -113,7 +145,7 @@ export const Services: React.FC<ServicesProps> = ({
 
                     {pricing && (
                       <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
-                        From {pricing.startingPrice}
+                        {formatPriceInCurrency(pricing.startingPrice, currency, { startingPrefix: true })}
                       </span>
                     )}
                   </div>
@@ -194,30 +226,41 @@ export const Services: React.FC<ServicesProps> = ({
               <button
                 type="button"
                 onClick={handleCloseModal}
-                className="absolute top-5 right-5 p-2 rounded-xl bg-white/10 text-slate-300 hover:text-white hover:bg-white/20 transition-all cursor-pointer"
+                className="absolute top-5 right-5 p-2 rounded-xl bg-white/10 text-slate-300 hover:text-white hover:bg-white/20 transition-all cursor-pointer z-10"
                 aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-[#00D2FF]">
-                  {getServiceIcon(selectedService.service.iconName, "w-6 h-6 text-[#00D2FF]")}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase bg-blue-500/20 text-[#00D2FF] border border-blue-400/30">
-                      Service Details
-                    </span>
-                    {selectedService.pricing && (
-                      <span className="text-xs font-semibold text-slate-300">
-                        Starting from {selectedService.pricing.startingPrice}
-                      </span>
-                    )}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pr-10 sm:pr-12">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-[#00D2FF] shrink-0">
+                    {getServiceIcon(selectedService.service.iconName, "w-6 h-6 text-[#00D2FF]")}
                   </div>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
-                    {selectedService.service.title}
-                  </h2>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase bg-blue-500/20 text-[#00D2FF] border border-blue-400/30">
+                        Service Details
+                      </span>
+                      {selectedService.pricing && (
+                        <span className="text-xs font-semibold text-slate-300">
+                          {formatPriceInCurrency(selectedService.pricing.startingPrice, currency, { startingPrefix: true })}
+                        </span>
+                      )}
+                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
+                      {selectedService.service.title}
+                    </h2>
+                  </div>
+                </div>
+
+                {/* Currency Selector inside modal */}
+                <div className="sm:self-center">
+                  <CurrencySelector
+                    selectedCurrency={currency}
+                    onCurrencyChange={(newCurr) => setCurrency(newCurr)}
+                    variant="dark"
+                  />
                 </div>
               </div>
             </div>
@@ -271,20 +314,31 @@ export const Services: React.FC<ServicesProps> = ({
               {/* Full Pricing Packages */}
               {selectedService.pricing && selectedService.pricing.packages && selectedService.pricing.packages.length > 0 && (
                 <div className="pt-4 border-t border-slate-200">
-                  <div className="mb-5">
-                    <h3 className="text-base font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                      <Tag className="w-4 h-4 text-blue-600" />
-                      <span>Available Packages & Rates</span>
-                    </h3>
-                    <p className="text-xs text-slate-500">
-                      Select a package to request a customized proposal with your requirements
-                    </p>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <Tag className="w-4 h-4 text-blue-600" />
+                        <span>Available Packages & Rates</span>
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Select a package to request a customized proposal with your requirements
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-slate-500">Currency:</span>
+                      <CurrencySelector
+                        selectedCurrency={currency}
+                        onCurrencyChange={(newCurr) => setCurrency(newCurr)}
+                        variant="compact"
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                     {selectedService.pricing.packages.map((pkg) => {
                       const isPopular = pkg.popular;
-                      const formattedPrice = `${pkg.isStartingFrom ? 'Starting from ' : ''}${pkg.price}${pkg.billingPeriod || ''}`;
+                      const formattedPrice = `${pkg.isStartingFrom ? 'Starting from ' : ''}${formatPriceInCurrency(pkg.price, currency)}${pkg.billingPeriod || ''}`;
 
                       return (
                         <div
@@ -309,8 +363,8 @@ export const Services: React.FC<ServicesProps> = ({
                               <h4 className="text-base font-bold text-slate-900">
                                 {pkg.name}
                               </h4>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase">
-                                LKR
+                              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-md uppercase">
+                                {currency}
                               </span>
                             </div>
 
@@ -322,7 +376,7 @@ export const Services: React.FC<ServicesProps> = ({
                               )}
                               <div className="flex items-baseline gap-1">
                                 <span className="text-xl sm:text-2xl font-extrabold text-slate-900">
-                                  {pkg.price}
+                                  {formatPriceInCurrency(pkg.price, currency, { hideSuffix: true })}
                                 </span>
                                 {pkg.billingPeriod && (
                                   <span className="text-xs font-semibold text-slate-500">
@@ -407,4 +461,3 @@ export const Services: React.FC<ServicesProps> = ({
     </section>
   );
 };
-
